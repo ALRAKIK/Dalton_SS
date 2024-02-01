@@ -784,7 +784,7 @@ C**********************************************************************C
 
 !     from her2her.F !
 
-!          PQXI = PX - SGN34X*COOR34(IOD34,1)ssss
+!          PQXI = PX - SGN34X*COOR34(IOD34,1)ssssss
 !          PQYI = PY - SGN34Y*COOR34(IOD34,2)
 !          PQZI = PZ - SGN34Z*COOR34(IOD34,3)
 
