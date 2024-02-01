@@ -250,6 +250,7 @@ C ---------------------------------------------------------------------- C
       ! local !
 
       REAL*8             :: ngx1 , ngx2 
+      INTEGER            :: sign 
 
       ! output !
 
@@ -272,31 +273,65 @@ C ********************************************************************** C
 
 C ********************************************************************** C
 
+!      if (toura) then
+!
+!        if (space == "POLYMER") then 
+!        
+!          if (abs(gx1-gx2) > 0.5*Lx) then 
+!
+!            if (gx1 > gx2) then 
+!              ngx1 = gx1 
+!              ngx2 = gx2 + Lx 
+!            end if 
+!
+!            if (gx2 > gx1) then 
+!              ngx2 = gx2 
+!              ngx1 = gx1+Lx 
+!            end if 
+!
+!          else 
+!            ngx1 = gx1 
+!            ngx2 = gx2 
+!          end if 
+!        
+!        Pxg1 = Px - ngx1 
+!        Pxg2 = Px - ngx2 
+!
+!          
+!        Pyg1 = Py - gy1
+!        Pzg1 = Pz - gz1
+!        
+!        Pyg2 = Py - gy2
+!        Pzg2 = Pz - gz2  
+!        
+!        end if   
+!      
+!      else  
+!      
+!      Pxg1 = Px - gx1  
+!      Pyg1 = Py - gy1
+!      Pzg1 = Pz - gz1
+!      
+!      Pxg2 = Px - gx2
+!      Pyg2 = Py - gy2
+!      Pzg2 = Pz - gz2 
+!      
+!      end if 
+       
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!           
+!      New implimentation after changing the distance 
+!      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
       if (toura) then
 
         if (space == "POLYMER") then 
         
-          if (abs(gx1-gx2) > 0.5*Lx) then 
+        call ssd(Px,gx1,Pxg1)
+  
+        call ssd(Px,gx2,Pxg2)
 
-            if (gx1 > gx2) then 
-              ngx1 = gx1 
-              ngx2 = gx2 + Lx 
-            end if 
-
-            if (gx2 > gx1) then 
-              ngx2 = gx2 
-              ngx1 = gx1+Lx 
-            end if 
-
-          else 
-            ngx1 = gx1 
-            ngx2 = gx2 
-          end if 
-        
-        Pxg1 = Px - ngx1 
-        Pxg2 = Px - ngx2 
-
-          
         Pyg1 = Py - gy1
         Pzg1 = Pz - gz1
         
@@ -316,7 +351,7 @@ C ********************************************************************** C
       Pzg2 = Pz - gz2 
       
       end if 
-       
+
 !       write(LUPRI,'(a,3f12.6)') "____________________________________"
 !       write(LUPRI,'(a,3f12.6)')
 !       write(LUPRI,'(a,3f12.6)')  '                  ODC'
@@ -386,38 +421,70 @@ C**********************************************************************C
 
 C**********************************************************************C
 
+!      if (toura) then 
+!      
+!        if (space == "POLYMER") then
+!          
+!          if (abs(xa-xp) > 0.5*Lx) then 
+!
+!            if (xa > xp) then 
+!              Xap = xa - (xp+Lx)                
+!            end if 
+!
+!            if (xp > xa) then 
+!              Xap = (xa+Lx) - xp 
+!            end if 
+!
+!          else 
+!
+!            Xap = xa - xp 
+!
+!          end if 
+!
+!        
+!        if (Xap >= 0) then 
+!          sign =   1.d0 
+!        else 
+!          sign = - 1.d0 
+!        end if 
+      
+!      Xap = sign * abs(Xap) 
+
+!        Xap = sign*(ax**(-2.d0)*(2.d0-2.d0*cos(ax*Xap)))**(0.5d0)
+!
+!
+!        Yap  = ya - yp
+!        Zap  = za - zp
+!      
+!        end if 
+!      
+!      else 
+!      
+!      Xap  = xa - xp
+!      Yap  = ya - yp
+!      Zap  = za - zp
+!      
+!      end if
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!                                                                      !
+!      New implimentation after changing the distance                  !
+!                                                                      !
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
       if (toura) then 
       
         if (space == "POLYMER") then
           
-          if (abs(xa-xp) > 0.5*Lx) then 
-
-            if (xa > xp) then 
-              Xap = xa - (xp+Lx)                
-            end if 
-
-            if (xp > xa) then 
-              Xap = (xa+Lx) - xp 
-            end if 
-
+        call ssd(xa,xp,Xap)
+      
+          if (Xap > 0) then 
+            sign =  1 
           else 
-
-            Xap = xa - xp 
-
+            sign = -1 
           end if 
 
-        
-        if (Xap >= 0) then 
-          sign =   1.d0 
-        else 
-          sign = - 1.d0 
-        end if 
-      
-!      Xap = sign * abs(Xap) 
-
         Xap = sign*(ax**(-2.d0)*(2.d0-2.d0*cos(ax*Xap)))**(0.5d0)
-
 
         Yap  = ya - yp
         Zap  = za - zp
@@ -722,6 +789,41 @@ C**********************************************************************C
      
       end if 
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!                                                                      !
+!      New implimentation after changing the distance                  !
+!                                                                      !
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+      if (toura) then
+     
+        if (space == "POLYMER") then 
+       
+        call ssd(Px,ngx1,Pxg1)
+        call ssd(Px,ngx2,Pxg2)
+
+        Pyg1 = Py - gy1
+        Pzg1 = Pz - gz1
+         
+        Pyg2 = Py - gy2
+        Pzg2 = Pz - gz2  
+         
+        end if   
+       
+      else  
+     
+      Pxg1 = Px - gx1  
+      Pyg1 = Py - gy1
+      Pzg1 = Pz - gz1
+     
+      Pxg2 = Px - gx2
+      Pyg2 = Py - gy2
+      Pzg2 = Pz - gz2 
+     
+      end if 
+
+
+
 !       write(LUPRI,'(a,3f12.6)') "____________________________________"
 !       write(LUPRI,'(a,3f12.6)')
 !       write(LUPRI,'(a,3f12.6)')  '                  ODC'
@@ -795,15 +897,13 @@ C**********************************************************************C
   
         if (space == "POLYMER") then
             
-           Xpp = xp1 - xp2  
+          call ssd(xp1,xp2,Xpp)  
 
           if (Xpp >= 0) then 
             sign =   1.d0 
           else 
             sign = - 1.d0 
           end if
-
-!          Xpp = sign * abs(Xpp) 
 
           Xpp = sign*(ax**(-2.d0)*(2.d0-2.d0*cos(ax*Xpp)))**(0.5d0)
 
@@ -898,6 +998,46 @@ C
 !          write(LUPRI,'(a,3f12.6)') '*******************'
 
       END
+C----------------------------------------------------------------------C
+C----------------------------------------------------------------------C
+C----------------------------------------------------------------------C
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!**********************************************************************! 
+C           
+C                       Short signed distance 
+C
+!**********************************************************************!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+
+      SUBROUTINE SSD(x1,x2,X)
+
+        use turin_irsamc
+      
+        implicit none 
+      
+        REAL*8, intent(in)  :: x1 , x2         ! the coordinates on X 
+      
+        REAL*8, intent(out) :: X               ! the distance
+      
+        ! local ! 
+      
+        INTEGER              :: sign
+      
+      
+        X = x1 - x2 
+
+        if (X >= 0) then 
+          sign =  1 
+        else
+          sign = -1 
+        end if 
+        
+        if (abs(X) > 0.5*Lx) then 
+          X = (-1)*sign*(Lx-abs(X))
+        end if 
+
+        END
 C----------------------------------------------------------------------C
 C----------------------------------------------------------------------C
 C----------------------------------------------------------------------C
