@@ -81,7 +81,7 @@ C
      *      AINT = AINT + DPTFAC * DP5 * ALPHAC**2 * STHMAT(IAB,3)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !     turin_irsamc THRS_OUT          
-!            IF (ABS(AINT) .GT. THRS_OUT) THEN
+            IF (ABS(AINT) .GT. THRS_OUT) THEN
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!               
                ICOUNT = ICOUNT + 1
                BUF(ICOUNT) = AINT
@@ -106,7 +106,7 @@ C
                   ICOUNT = 0
                END IF
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!               
-!            END IF
+            END IF
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!            
          END DO
          NCOUNT = 600*NBUF + ICOUNT

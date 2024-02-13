@@ -2169,7 +2169,7 @@ C             to tell this is a point charge /hjaaj Nov 2003
         END IF
   100 CONTINUE   !  DO 100 N = 1,NONT
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! turin_irsamc 
+!     turin_irsamc 
 !      if (toura) then 
 !         if (space == "POLYMER") then
 !
@@ -2183,7 +2183,7 @@ C             to tell this is a point charge /hjaaj Nov 2003
 !         end if 
 !      end if  
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
-
+      fa = CORD(1,1)
       RETURN
 C
 C       Error messages:
