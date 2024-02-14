@@ -20,7 +20,7 @@ C----------------------------------------------------------------------C
       REAL*8     LX, LY, LZ
       REAL*8     ax, ay, az
       REAL*8     fa 
-      REAL*8,parameter :: eta = 0.0000001
+      REAL*8,parameter :: eta = 0.000001
 
 
       end module turin_irsamc
@@ -81,7 +81,7 @@ C ********************************************************************** C
 C ********************************************************************** C
 
       if (toura) then
-  
+
         if (space == "POLYMER") then
   
           X = x1 - x2                       ! calculate the distance in normal way 
@@ -192,13 +192,19 @@ C ********************************************************************** C
 
           end if 
 
-          if (gx1 == gx2 ) then 
+          if (gx1 == gx2) then 
             Xp = gx1 
           end if 
 
-!      if ((XP-Lx) >= Lx-eta) then 
-!        Xp = Xp - Lx
-!      end if 
+          if (e1 == e2) then 
+            if (abs(gx1-gx2) <= 0.5d0*Lx) then 
+              Xp = 0.5*(gx1 + gx2)
+            end if 
+          end if 
+
+          if (XP >= Lx-eta) then 
+            Xp = Xp - Lx
+          end if 
 
 !       Xp  = e1*gx1 + e2*gx2 
         Yp  = e1*gy1 + e2*gy2
@@ -215,11 +221,6 @@ C ********************************************************************** C
       end if      
 
 
-
-
-
-
-!      if (toura) then 
 !        write(lupri,'(a,3f12.6)')  '###################################'
 !        write(lupri,'(a,3f12.6)')  ''
 !        write(lupri,'(a,3f12.6)')  ''
@@ -234,26 +235,8 @@ C ********************************************************************** C
 !        write(lupri,'(a,3f12.6)')  '       gx1         gx2         Xp'
 !        write(lupri,'(a,3f12.6)')  ''
 !        write(lupri,'(3(f24.16))')     gx1  ,  gx2 ,   Xp
-!        write(lupri,'(3(f24.16))')     gy1  ,  gy2 ,   Yp 
 !        write(lupri,'(a,3f12.6)')  ''
-!      else 
-!        write(lupri,'(a,3f12.6)')  '###################################'
-!        write(lupri,'(a,3f12.6)')  ''
-!        write(lupri,'(a,3f12.6)')  ''
-!        write(LUPRI,'(a,3f12.6)')  "***********************************"
-!        write(LUPRI,'(a,3f12.6)')  '               Barycenter'
-!        write(LUPRI,'(a,3f12.6)')  "***********************************"
-!        write(LUPRI,'(a,3f12.6)')  ''
-!        write(lupri,'(a,3f12.6)')  '          e1                 e2'
-!        write(lupri,'(a,3f12.6)')  ''
-!        write(lupri,'(4x,f12.6,a,f12.6)')     e1p ,'      ', e2p 
-!        write(lupri,'(a,3f12.6)')  ''
-!        write(lupri,'(a,3f12.6)')  '       gx1         gx2         Xp'
-!        write(lupri,'(a,3f12.6)')  ''
-!        write(lupri,'(3(f24.16))')     gx1  ,  gx2 ,   Xp
-!        write(lupri,'(3(f24.16))')     gy1  ,  gy2 ,   Yp
-!        write(lupri,'(a,3f12.6)')  ''
-!      end if 
+
         End
 C ---------------------------------------------------------------------- C
 C ---------------------------------------------------------------------- C
@@ -355,12 +338,11 @@ C ********************************************************************** C
       
       Pxg2 = Px - gx2
       Pyg2 = Py - gy2
-      Pzg2 = Pz - gz2 
-      
+      Pzg2 = Pz - gz2      
+
       end if 
 
      
-!      if (toura) then 
 !       write(LUPRI,'(a,3f12.6)') "____________________________________"
 !       write(LUPRI,'(a,3f12.6)')
 !       write(LUPRI,'(a,3f12.6)')  '                  ODC'
@@ -368,35 +350,17 @@ C ********************************************************************** C
 !       write(LUPRI,'(a,3f12.6)')
 !       write(LUPRI,'(a,3f12.6)') '              Bary_centers  ' 
 !       write(LUPRI,'(a,3f12.6)')
-!       write(LUPRI,'(3(4x,f12.6))')         Px , Py 
+!       write(LUPRI,'(3(4x,f12.6))')         Px 
 !       write(LUPRI,'(a,3f12.6)')
 !       write(LUPRI,'(a,3f12.6)') '              Gaussian locations '
 !       write(LUPRI,'(a,3f12.6)')
-!       write(LUPRI,'(3(4x,f12.6))')         gx1 , gx2  , gy1 , gy2 
+!       write(LUPRI,'(3(4x,f12.6))')         gx1 , gx2  
 !       write(LUPRI,'(a,3f12.6)')
 !       write(LUPRI,'(a,3f12.6)') '               Bary-Gaus loc     ' 
 !       write(LUPRI,'(a,3f12.6)')
-!       write(LUPRI,'(3(4x,f12.6))')         Pxg1 , Pxg2 ,Pyg1 , Pyg2 
+!       write(LUPRI,'(3(4x,f12.6))')         Pxg1 , Pxg2
 !       write(LUPRI,'(a,3f12.6)') "" 
-!      else 
-!        write(LUPRI,'(a,3f12.6)') "____________________________________"
-!        write(LUPRI,'(a,3f12.6)')
-!        write(LUPRI,'(a,3f12.6)')  '                  ODC'
-!        write(LUPRI,'(a,3f12.6)') "____________________________________"
-!        write(LUPRI,'(a,3f12.6)')
-!        write(LUPRI,'(a,3f12.6)') '              Bary_centers  ' 
-!        write(LUPRI,'(a,3f12.6)')
-!        write(LUPRI,'(3(4x,f12.6))')         Px , Py  
-!        write(LUPRI,'(a,3f12.6)')
-!        write(LUPRI,'(a,3f12.6)') '              Gaussian locations '
-!        write(LUPRI,'(a,3f12.6)')
-!        write(LUPRI,'(3(4x,f12.6))')         gx1 , gx2  , gy1 , gy2 
-!        write(LUPRI,'(a,3f12.6)')
-!        write(LUPRI,'(a,3f12.6)') '               Bary-Gaus loc     ' 
-!        write(LUPRI,'(a,3f12.6)')
-!        write(LUPRI,'(3(4x,f12.6))')         Pxg1 , Pxg2,Pyg1 , Pyg2
-!        write(LUPRI,'(a,3f12.6)') "" 
-!      end if 
+
       End 
 
 C----------------------------------------------------------------------C
@@ -458,9 +422,7 @@ C**********************************************************************C
       
         if (space == "POLYMER") then
           
-!        call NASSD(xa,xp,Xap)
-
-          Xap = xa - xp 
+        call SSD(xa,xp,Xap)
 
           if (Xap >= 0) then 
             sign =  1 
@@ -470,14 +432,8 @@ C**********************************************************************C
 
           nxp = Xap
 
-          if (abs(Xap) > 0.5d0*Lx-eta) then 
-            Xap = Lx - abs(Xap)
-          end if 
+          Xap = sign*(ax**(-2.d0)*(2.d0-2.d0*cos(ax*Xap)))**(0.5d0)
 
-          Xap = (ax**(-2.d0)*(2.d0-2.d0*cos(ax*Xap)))**(0.5d0)
-          
-        Yap  = ya - yp
-        Zap  = za - zp
           
         end if 
       
@@ -489,41 +445,23 @@ C**********************************************************************C
 
       end if
 
-!      if (toura) then 
 !      write(LUPRI,'(a,3f12.6)') "-------------------------------------"
 !      write(LUPRI,'(a,3f12.6)') '          Nuclear attraction'
 !      write(LUPRI,'(a,3f12.6)') "-------------------------------------"
 !      write(LUPRI,'(a,3f12.6)') '             Bary_centers'
 !      write(LUPRI,'(a,3f12.6)')
-!      write(LUPRI,'(11x,2f12.6)')           xp , yp 
+!      write(LUPRI,'(11x,2f12.6)')           xp 
 !      write(LUPRI,'(a,3f12.6)') 
 !      write(LUPRI,'(a,3f12.6)') '             Nuclei coord'
 !      write(LUPRI,'(a,3f12.6)')
-!      write(LUPRI,'((11x,2f12.6))')         xa  , ya 
+!      write(LUPRI,'((11x,2f12.6))')         xa  
 !      write(LUPRI,'(a,3f12.6)')
 !      write(LUPRI,'(a,3f12.6)') '             The distance :' 
 !      write(LUPRI,'(a,3f12.6)')
-!      write(LUPRI,'((11x,4f12.6))')        Xap 
+!      write(LUPRI,'((11x,4f12.6))')         nxp
 !      write(LUPRI,'(a,3f12.6)')
 !      write(LUPRI,'(a,3f12.6)')
-!      ELSE
-!      write(LUPRI,'(a,3f12.6)') "-------------------------------------"
-!      write(LUPRI,'(a,3f12.6)') '          Nuclear attraction'
-!      write(LUPRI,'(a,3f12.6)') "-------------------------------------"
-!      write(LUPRI,'(a,3f12.6)') '             Bary_centers'
-!      write(LUPRI,'(a,3f12.6)')
-!      write(LUPRI,'(11x,2f12.6)')           xp ,yp 
-!      write(LUPRI,'(a,3f12.6)') 
-!      write(LUPRI,'(a,3f12.6)') '             Nuclei coord'
-!      write(LUPRI,'(a,3f12.6)')
-!      write(LUPRI,'((11x,2f12.6))')         xa  , ya   
-!      write(LUPRI,'(a,3f12.6)')
-!      write(LUPRI,'(a,3f12.6)') '             The distance :' 
-!      write(LUPRI,'(a,3f12.6)')
-!      write(LUPRI,'((11x,4f12.6))')        sqrt(Xap**2+Yap**2) 
-!      write(LUPRI,'(a,3f12.6)')
-!      write(LUPRI,'(a,3f12.6)')
-!      end if 
+
 
       END 
 
@@ -662,7 +600,7 @@ C**********************************************************************C
       
         if (space == 'POLYMER') then 
         
-          if (abs(gx1-gx2) > 0.5d0*Lx-eta) then 
+          if (abs(gx1-gx2) > 0.5d0*Lx) then 
           
               if (gx1 > gx2) then 
               
@@ -684,6 +622,20 @@ C**********************************************************************C
           
           end if 
 
+          if (gx1 == gx2 ) then 
+            Xp = gx1 
+          end if 
+
+
+          if (e1 == e2) then 
+            if (abs(gx1-gx2) <= 0.5d0*Lx) then 
+              Xp = 0.5*(gx1 + gx2)
+            end if 
+          end if 
+
+          if (Xp >= Lx) then 
+            Xp = Xp  - Lx 
+          end if 
          
 !       Xp  = e1*gx1 + e2*gx2 
         Yp  = e1*gy1 + e2*gy2
@@ -699,15 +651,6 @@ C**********************************************************************C
       
       end if      
        
-      if (gx1 == gx2 ) then 
-        Xp = gx1 
-      end if 
-
-!      if (Xp > Lx) then 
-!        Xp = Xp  - Lx 
-!      end if 
-
-
 !      write(lupri,'(a,3f12.6)')  '###################################'
 !      write(lupri,'(a,3f12.6)')  ''
 !      write(lupri,'(a,3f12.6)')  ''
@@ -896,7 +839,7 @@ C**********************************************************************C
   
         if (space == "POLYMER") then
             
-          call NASSD(xp1,xp2,Xpp)  
+          call SSD(xp1,xp2,Xpp)
 
           if (Xpp >= 0) then 
             sign =   1.d0 
@@ -904,8 +847,8 @@ C**********************************************************************C
             sign = - 1.d0 
           end if
 
-          Xpp = sign*(ax**(-2.d0)*(2.d0-2.d0*cos(ax*Xpp)))**(0.5d0)
-
+          Xpp = sign*(ax**(-2.d0)*(2.d0-2.d0*cos(ax*Xpp)))**(0.5d0) 
+          
           Ypp  = yp1 - yp2
           Zpp  = zp1 - zp2
   
@@ -1032,36 +975,9 @@ C
           sign = -1 
         end if 
         
-        if (abs(X) > 0.5*Lx-eta) then 
+        if (abs(X) >= 0.5*Lx-eta) then 
           X = (-1)*sign*(Lx-abs(X))
         end if 
-
-        END
-C----------------------------------------------------------------------C
-C----------------------------------------------------------------------C
-C----------------------------------------------------------------------C
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!**********************************************************************! 
-C           
-C              Nuclear attraction short signed distance 
-C
-!**********************************************************************!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
-
-      SUBROUTINE NASSD(x1,x2,X)
-      
-        use turin_irsamc
-      
-        implicit none 
-      
-        REAL*8, intent(in)  :: x1 , x2         ! the coordinates on X 
-      
-        REAL*8, intent(out) :: X               ! the distance
-      
-        ! local ! 
-      
-        X = x1 - x2 
 
         END
 C----------------------------------------------------------------------C

@@ -708,15 +708,15 @@ C
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !     turin_irsamc  10 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-       CALL HEADER ('Indiviual integrals',-1)
-       WRITE (LUPRI,'(//,A,2F12.6)') "Overlap"  , SFAC*X0*Y0*Z0
-       WRITE (LUPRI,'(//,A,2F12.6)')
-       WRITE (LUPRI,'(//,A,2F12.6)') "Kinetic",
-     &            TFAC*(X2*Y0*Z0 + X0*Y2*Z0 + X0*Y0*Z2)
-       WRITE (LUPRI,'(//,A,2F12.6)')
-       WRITE (LUPRI,'(//,A,2F12.6)')
-       WRITE (LUPRI,'(//,A,2F12.6)') "Nuclear attraction"  , AINT
-       WRITE (LUPRI,'(//,A,2F12.6)')
+!       CALL HEADER ('Indiviual integrals',-1)
+!       WRITE (LUPRI,'(//,A,2F12.6)') "Overlap"  , SFAC*X0*Y0*Z0
+!       WRITE (LUPRI,'(//,A,2F12.6)')
+!       WRITE (LUPRI,'(//,A,2F12.6)') "Kinetic",
+!     &            TFAC*(X2*Y0*Z0 + X0*Y2*Z0 + X0*Y0*Z2)
+!       WRITE (LUPRI,'(//,A,2F12.6)')
+!       WRITE (LUPRI,'(//,A,2F12.6)')
+!       WRITE (LUPRI,'(//,A,2F12.6)') "Nuclear attraction"  , AINT
+!       WRITE (LUPRI,'(//,A,2F12.6)')
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!         
   100 CONTINUE
       RETURN
