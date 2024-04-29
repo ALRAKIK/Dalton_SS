@@ -52,7 +52,7 @@ C
      &      ' Metric is changed by direct perturbation theory (DPT) '
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !     turin_irsamc     4 
-            IF (IPRINT .GE. 0) WRITE (LUPRI,'(/A)') ' Overlap matrix'
+            IF (IPRINT .GE. 4) WRITE (LUPRI,'(/A)') ' Overlap matrix'
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!            
             WRITE (LUONEL) LAB123, TITLES
          ELSE IF (ITYPE .EQ. 2) THEN
@@ -61,14 +61,14 @@ C
      &      ' direct perturbation theory (DPT) '
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !     turin_irsamc   4
-            IF (IPRINT .GE. 0)
+            IF (IPRINT .GE. 4)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!            
      &         WRITE (LUPRI,'(/A)')' One-el. Ham. matrix'
             WRITE (LUONEL) LAB123, TITLEH
          ELSE IF (ITYPE .EQ. 3) THEN
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !     turin_irsamc   4          
-            IF (IPRINT .GE. 0) WRITE (LUPRI,'(/A)')' Kin. energy matrix'
+            IF (IPRINT .GE. 4) WRITE (LUPRI,'(/A)')' Kin. energy matrix'
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!            
             WRITE (LUONEL) LAB123, TITLET
          END IF
@@ -116,7 +116,7 @@ C
          END IF
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !     turin_irsamc   4                  
-         IF (IPRINT .GE. 0) THEN
+         IF (IPRINT .GE. 4) THEN
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!            
             WRITE (LUPRI, '(//A,2I5,A,2I8)')
      *         ' ICOUNT, NBUF  ', ICOUNT, NBUF,
@@ -124,7 +124,7 @@ C
          END IF
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !     turin_irsamc 5                   
-         IF (IPRINT .GE. 0) THEN
+         IF (IPRINT .GE. 5) THEN
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!            
              DO 500 I = 1, ICOUNT
                 LABEL = IBUF(I)
@@ -137,7 +137,7 @@ C
          WRITE (LUONEL) BUF, IBUF, -1
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !     turin_irsamc   3                   
-         IF (IPRINT .GE. 0) THEN
+         IF (IPRINT .GE. 3) THEN
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!            
             PERCNT = 100.0D0*NCOUNT
             PERCNT = PERCNT / IAB

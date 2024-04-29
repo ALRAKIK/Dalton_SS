@@ -441,6 +441,10 @@ C           include only 'X', 'Y', or 'Z' in TEXTUC
       END
 C  /* Deck delmo */
       SUBROUTINE DELMO(CMO,SCRA,LSCRA,THROVL,CMAXMO,DELEMO)
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!     turin_irsanc 
+      use turin_irsamc
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!                     
 C
 C Written 18-Jan-198* by Hans Jorgen Aa. Jensen and Hans Agren
 C Revised 26-Aug-1992 by OV+HJAaJ
@@ -539,12 +543,46 @@ C              This routine will then delete the corresponding vectors from CMO.
 C
 C        Update SCR(KS1T) to the new CMO vectors:
 C
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!     turin_irsamc 
+
+       allocate(over(NORBI,NORBI))
+       
+       CALL HEADER ('The overlap Matrix',-1)
+
+       K = 1 
+
+       over(:,:) = 0.d0 
+
+      WRITE(LUPRI,'(1000I16)') (I,I=1,NORBI)
+      WRITE(LUPRI,'(A)') '' 
+      
+      do i = 1,NORBI 
+         do J = 1,NORBI 
+            if (J <= i) then 
+               over(i,j) = SCRA(K)
+               K = K + 1 
+            end if 
+            over(j,i) = over(i,j)
+         end do 
+      end do 
+
+      do i = 1,NORBI
+            WRITE(LUPRI,'(I3,A,100000F16.12)') i,'   ', over(i,:)
+      end do 
+
+      deallocate(over)
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
          CALL UTHU(SCRA(ISSYM),SCRA(KS1T),CMO(ICSYM),SCRA(KSCR1),
      *             NBASI,NORBI)
 C
 C        Diagonalize overlap matrix ( S * U = U * Seig )
 C
          CALL JACO_THR(SCRA(KS1T),CMO(ICSYM),NORBI,NORBI,NBASI,0.0D0)
+
 C        CALL JACO_THR(F,V,NB,NMAX,NROWV,THR_JACO)
          II = 0
          DO 175 I = 1,NORBI
@@ -552,17 +590,28 @@ C        CALL JACO_THR(F,V,NB,NMAX,NROWV,THR_JACO)
             SCRA(KS1T-1+I)=SCRA(KS1T-1+II)
   175    CONTINUE
          CALL ORDER2(CMO(ICSYM),SCRA(KS1T),NORBI,NBASI)
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!     turin_irsamc 
+
          IF (IPRI6 .GT. 10 .OR. P6FLAG(38)) THEN
             IF (LMULBS .AND. LAUXBS) THEN
               WRITE (LUPRI,'(/A,I5/)')
      &        ' DELMO: eigenvalues of overlap matrix for '//
      &        'auxiliary basis for symmetry',ISYM
             ELSE
-              WRITE (LUPRI,'(/A,I5/)')
+         
+            WRITE (LUPRI,'(/A,I5/)')
      &        ' DELMO: eigenvalues of overlap matrix for symmetry',ISYM
             END IF
-            WRITE (LUPRI,'(1P,5D15.5)') (SCRA(KS1T-1+I),I=1,NORBI)
          END IF
+
+!!!!!! new          
+         WRITE (LUPRI,'(/A,I5/)') ' The overlap eigenvalues'
+         WRITE (LUPRI,'(/A,I5/)') ''
+         WRITE (LUPRI,'(1P,5D15.5)') (SCRA(KS1T-1+I),I=1,NORBI)
+!!!!!! new
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!           
 C
 C Delete orbitals with small ( THROVL ) eigenvalues
 C
@@ -1409,6 +1458,9 @@ C
       END
 C  /* Deck prorb */
       SUBROUTINE PRORB(CMO,PROCC,IOUT)
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!     turin_irsamc 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!             
 C
 C Written 11-Dec-1983 by ha/hjaaj
 C Revised  8-Jul-1992 hjaaj
@@ -1455,12 +1507,18 @@ C
 C *** Print molecular orbitals
 C
       IF (PROCC .AND. .NOT. CMOPRI) THEN
-         THRPRI = 1.0D-2
-         WRITE(IOUT,'(/A,F7.4,A)')
-     &   ' (Only coefficients >',THRPRI,' are printed.)'
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!     turin_irsamc  1.0D-2  1.0D-4    
+         THRPRI = 1.0D-2 
+!         WRITE(IOUT,'(/A,F7.4,A)')
+!     &   ' (Only coefficients >',THRPRI,' are printed.)'
+         THRPRI = 0.D0 
+         WRITE(IOUT,'(/A,A)')
+     &   ' (All coefficients will be printed are printed.)'    
       ELSE
          THRPRI = 1.0D-4
       END IF
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
 C
       ISTBAS = 0
       DO 400 ISYM = 1,NSYM
@@ -1469,7 +1527,12 @@ C
          IF (LMULBS) MBASI = MBAS1(ISYM)
 C
          IF (PROCC .AND. .NOT. CMOPRI) THEN
-            IF (NBAST .LE. 50) THEN
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!     turin_irsamc 50   
+
+            IF (NBAST .LE. 200) THEN
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 C           print all occupied and 10 lowest unoccupied this symmetry
                IEND = 0
             ELSE

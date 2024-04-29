@@ -182,16 +182,21 @@ C
 
       call DISTANAPC(CORPX,CORPY,CORPZ,CORAX,CORAY,
      &               CORAZ,CORBX,CORBY,CORPZ,
-     &               PAX,PAY,PAZ,PBX,PBY,PBZ)
+     &               PAX,PAY,PAZ,PBX,PBY,PBZ,JMAX)
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
-
       EXPPIH = EXPPI/2
       DO 100 A = 0, JMAXAP
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!     turin_irsamc                   
+!         WRITE(LUPRI,'(a,I4)') 'A' , A
+!         WRITE(LUPRI,'(a,I4)') 'A'
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!         
          IF (A .EQ. 0) THEN
             ODCUND(0,0,0,0,0,1) = FAC
             ODCUND(0,0,0,0,0,2) = FAC
             ODCUND(0,0,0,0,0,3) = FAC
+!            WRITE(LUPRI,'(a,F16.12)') 'FAC', FAC 
          ELSE
             DO 200 T = 0, A
                X_TP1 = T + 1
@@ -204,6 +209,8 @@ C
                ODCUND(A,0,T,0,0,3) = EXPPIH*ODCUND(A-1,0,T-1,0,0,3)
      *                                + PAZ*ODCUND(A-1,0,T  ,0,0,3)
      *                              + X_TP1*ODCUND(A-1,0,T+1,0,0,3)
+!      CALL AROUND('ODCUND in ONEODC - x component')
+!      WRITE(LUPRI,'(a,6F16.12)') 'ODCUND i', ODCUND(A,0,T,0,0,1) 
   200       CONTINUE
          END IF
          DO 300 B = 1, JMAXBP
@@ -223,7 +230,11 @@ C
   400          CONTINUE
   300    CONTINUE
   100 CONTINUE
-      IF (IPRINT .GE. 20) THEN
+
+               
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!     turin_irsamc     10
+      IF (IPRINT .GE. 10) THEN
          CALL TITLER('Output from ONEODC','*',103)
          NROW = (JMAXAP + 4)*(JMAXBP + 3)
          NCOL = JMAXTP + 3
@@ -241,6 +252,7 @@ C
      &               1,LUPRI)
       END IF
       RETURN
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
       END
 C  /* Deck dodca */
       SUBROUTINE DODCA(ODC,ODCUND,JMAXA,JMAXAP,JMAXBP,JMAXB,JMAXT,
@@ -271,7 +283,7 @@ C
 C
       CALL COPODC(ODCUND,ODC,JMAXAP,JMAXBP,JMAXA,JMAXB,JMAXT,JMAXTP,
      &            JMAXD,JMAXM,JMAXD,0)
-      IF (IPRINT .GE. 20) THEN
+      IF (IPRINT .GE. 10) THEN
          CALL TITLER('Output from DODCA','*',103)
          JMAXAB = (JMAXA + 1)*(JMAXB + 1)
          DO 60 I = 1, JMAXD

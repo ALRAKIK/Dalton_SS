@@ -83,6 +83,7 @@ C  /* Deck onepr1 */
      &                  DIFQDP,FACINT,COORC,GNUEXP,JCENTC,NCENTC,NHKTAP,
      &                  NCLONE,PCM,TSHGTF,EXPDER,WORK,LWORK)
 C
+
 #include "implicit.h"
 #include "priunit.h"
 #include "pi.h"
@@ -121,7 +122,7 @@ C
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !     turin_irsamc 
-!     calculate the distance betwee nthe barycenter for S functions 
+!     calculate the distance between the atoms for S functions 
 
 !      DIFABX = CORAX - CORBX
 !      DIFABY = CORAY - CORBY
@@ -262,10 +263,15 @@ C
 C           Calculate and test square root factor
 C
             EXPABQ = EXPA*EXPB*DISTAB*EXPPI
+********************************************************            
+! turin_irsamc !            
          IF (EXPABQ.GT.TOLOG) GO TO 200
+********************************************************
             SAAB = CONTA*CONTB*EXP(-EXPABQ)
             ASAAB = ABS(SAAB)
+********************************************************            
          IF (ASAAB.LT.TOLS) GO TO 200
+********************************************************
             SAAB13 = SIGN(ASAAB**THIRD,SAAB)
 C
 C           Calculate coordinates of product Gaussian P
@@ -335,7 +341,7 @@ C
 
       CALL  DISTARCP(COORC(1,IATOMC),CORPX,DIFCPX
      &              ,COORC(2,IATOMC),CORPY,DIFCPY
-     &              ,COORC(3,IATOMC),CORPZ,DIFCPZ)
+     &              ,COORC(3,IATOMC),CORPZ,DIFCPZ,JMAX)
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!                  
                   IF(ABS(GNUEXP(IATOMC)).GT.GNUTHR) THEN
@@ -668,6 +674,10 @@ C
          Z2 = ODC(NVALA,NVALB,0,2,0,3)
          INT = INT + 1
          STDER0(INT,1) = STDER0(INT,1)+SFAC*X0*Y0*Z0
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!     turin_irsamc         
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
          STDER0(INT,2) = STDER0(INT,2)+TFAC*(X2*Y0*Z0+X0*Y2*Z0+X0*Y0*Z2)
 C
 C     **************************************************
@@ -688,6 +698,10 @@ C
                   DO 500 IATOM = 1,NATOMC
                      IADD = IADD + NAHGTF
                      AINT = AINT + EEE*AHGTF(IADR00 + IADD)
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!     turin_irsamc 
+!         WRITE (LUPRI,'(/,A,3F16.12)') "AINT" , IANT
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!                     
   500             CONTINUE
   400          CONTINUE
                IADRAU = IADRAU + ISTEPU
@@ -702,18 +716,19 @@ C
             CALL HEADER ('Output from CINT0',-1)
             WRITE (LUPRI,'(//,A,2I5)') ' ICOMPA, ICOMPB ', ICOMPA,ICOMPB
             WRITE (LUPRI,'(/,A,2F12.6)') ' SFAC, TFAC ', SFAC, TFAC
-            WRITE (LUPRI,'(/,A,3F12.6)') ' SINT, TINT, AINT ',
+            WRITE (LUPRI,'(/,A,3F12.6)') ' SINT, TINT, AINT ', 
      *        SFAC*X0*Y0*Z0, TFAC*(X2*Y0*Z0 + X0*Y2*Z0 + X0*Y0*Z2), AINT
          END IF
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !     turin_irsamc  10 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !       CALL HEADER ('Indiviual integrals',-1)
+!       WRITE (LUPRI,'(/,A,2F12.6)') ' SFAC, TFAC ', SFAC, TFAC
 !       WRITE (LUPRI,'(//,A,2F12.6)') "Overlap"  , SFAC*X0*Y0*Z0
 !       WRITE (LUPRI,'(//,A,2F12.6)')
+!       WRITE (LUPRI,'(//,A,3F12.6)') "X0,Y0,Z0" , X0 , Y0 , Z0 
 !       WRITE (LUPRI,'(//,A,2F12.6)') "Kinetic",
 !     &            TFAC*(X2*Y0*Z0 + X0*Y2*Z0 + X0*Y0*Z2)
-!       WRITE (LUPRI,'(//,A,2F12.6)')
 !       WRITE (LUPRI,'(//,A,2F12.6)')
 !       WRITE (LUPRI,'(//,A,2F12.6)') "Nuclear attraction"  , AINT
 !       WRITE (LUPRI,'(//,A,2F12.6)')

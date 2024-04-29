@@ -254,6 +254,10 @@ C  /* Deck r0001 */
 C
 C     TUH 84
 C
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!     turin_irsamc 
+      use turin_irsamc
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #include "implicit.h"
 #include "priunit.h"
 #include "iratdef.h"
@@ -558,7 +562,7 @@ C
                   TALPHA(IODS,1) = - D2*ALPHA*BETA
                   PQXI = PX - SGN34X*COOR34(IOD34,1)
                   PQYI = PY - SGN34Y*COOR34(IOD34,2)
-                  PQZI = PZ - SGN34Z*COOR34(IOD34,3)               
+                  PQZI = PZ - SGN34Z*COOR34(IOD34,3)             
                   PQX(IODS) = PQXI
                   PQY(IODS) = PQYI
                   PQZ(IODS) = PQZI
@@ -586,9 +590,16 @@ C
 !                PQYI = PY - SGN34Y*COOR34(IOD34,2)
 !                PQZI = PZ - SGN34Z*COOR34(IOD34,3)
 
+         center1 = bary_1(IOD12)
+         center2 = bary_2(IOD34)
+
          call DISTARCPP(PX,SGN34X*COOR34(IOD34,1),PQXI,
      &                  PY,SGN34Y*COOR34(IOD34,2),PQYI,
-     &                  PZ,SGN34Z*COOR34(IOD34,3),PQZI)
+     &                  PZ,SGN34Z*COOR34(IOD34,3),PQZI,center1,center2)
+
+!         write(Lupri,'(f12.6,a,L,f12.6,a,L)')
+!     &    PX ,'  ', bary_1(IOD12) ,
+!     &    SGN34X*COOR34(IOD34,1) , '  ' ,bary_2(IOD34) 
              
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!                             
                   PQX(IODS) = PQXI
@@ -675,7 +686,7 @@ C
                   TALPHA(IODS,1) = - D2*EXPPQII
                   PQXI = PX - SGN34X*COOR34(IOD34,1)
                   PQYI = PY - SGN34Y*COOR34(IOD34,2)
-                  PQZI = PZ - SGN34Z*COOR34(IOD34,3)
+                  PQZI = PZ - SGN34Z*COOR34(IOD34,3)                
                   PQX(IODS) = PQXI
                   PQY(IODS) = PQYI
                   PQZ(IODS) = PQZI
@@ -1379,6 +1390,18 @@ C
                   PQXI = PX - COOR34(IOD34,1)
                   PQYI = PY - COOR34(IOD34,2)
                   PQZI = PZ - COOR34(IOD34,3)
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!     turin_irsamc 
+
+!               PQXI = PX - COOR34(IOD34,1)
+!               PQYI = PY - COOR34(IOD34,2)
+!               PQZI = PZ - COOR34(IOD34,3)
+                 
+         call DISTARCPP(PX,SGN34X*COOR34(IOD34,1),PQXI,
+     &                  PY,SGN34Y*COOR34(IOD34,2),PQYI,
+     &                  PZ,SGN34Z*COOR34(IOD34,3),PQZI)
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!                  
                   IF (ABS(PQXI) .GT. THRESH) IPQ0X = 0
                   IF (ABS(PQYI) .GT. THRESH) IPQ0Y = 0
                   IF (ABS(PQZI) .GT. THRESH) IPQ0Z = 0

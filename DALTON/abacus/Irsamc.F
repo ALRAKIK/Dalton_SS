@@ -14,13 +14,23 @@ C----------------------------------------------------------------------C
 
       ! integer !
 
-
+      INTEGER(KIND=8),parameter ::   decimals = 12 
+      
       ! real ! 
       
       REAL*8     LX, LY, LZ
       REAL*8     ax, ay, az
-      REAL*8     fa 
-      REAL*8,parameter :: eta = 0.000001
+
+      ! matrix real ! 
+
+      REAL*8,allocatable   ::  over(:,:)
+
+      ! two electron integral ! 
+
+      LOGICAL              :: first_electron , second_electron 
+      LOGICAL              :: bary_1(500000) , bary_2(500000)
+      LOGICAL              :: center1 , center2 
+      INTEGER              :: iii = 0 , iij = 0 
 
 
       end module turin_irsamc
@@ -106,9 +116,7 @@ C ********************************************************************** C
         DIST = X*X+Y*Y+Z*Z                  ! the distance 
   
   
-!       write(lupri,'(a,3f12.6)')  'CORAX',    x1  
-!       write(lupri,'(a,3f12.6)') 'x2,y2,z2  :',x2,y2,z2
-!       write(lupri,'(a,3f12.6)') 'X , Lx    :',X
+!       write(lupri,'(a,3f12.6)')  'CORAX',    x1 , x2
 !       write(lupri,'(a,3f12.6)') 'D         :',DIST
 !       write(lupri,'(a,3f12.6)')
 
@@ -199,12 +207,16 @@ C ********************************************************************** C
           if (e1 == e2) then 
             if (abs(gx1-gx2) <= 0.5d0*Lx) then 
               Xp = 0.5*(gx1 + gx2)
+            else 
+              Xp = 0.5*(gx1 + gx2 + Lx)
             end if 
           end if 
 
-          if (XP >= Lx-eta) then 
+          if (XP >= Lx) then 
             Xp = Xp - Lx
           end if 
+
+!        call truncate(Xp,decimals)
 
 !       Xp  = e1*gx1 + e2*gx2 
         Yp  = e1*gy1 + e2*gy2
@@ -220,7 +232,6 @@ C ********************************************************************** C
       
       end if      
 
-
 !        write(lupri,'(a,3f12.6)')  '###################################'
 !        write(lupri,'(a,3f12.6)')  ''
 !        write(lupri,'(a,3f12.6)')  ''
@@ -228,9 +239,9 @@ C ********************************************************************** C
 !        write(LUPRI,'(a,3f12.6)')  '               Barycenter'
 !        write(LUPRI,'(a,3f12.6)')  "***********************************"
 !        write(LUPRI,'(a,3f12.6)')  ''
-!        write(lupri,'(a,3f12.6)')  '          e1                 e2'
+!        write(lupri,'(a,3f24.16)')  '          e1                 e2'
 !        write(lupri,'(a,3f12.6)')  ''
-!        write(lupri,'(4x,f12.6,a,f12.6)')     e1p ,'      ', e2p 
+!        write(lupri,'(4x,f24.16,a,f24.16)')     e1p ,'      ', e2p 
 !        write(lupri,'(a,3f12.6)')  ''
 !        write(lupri,'(a,3f12.6)')  '       gx1         gx2         Xp'
 !        write(lupri,'(a,3f12.6)')  ''
@@ -251,7 +262,7 @@ C ---------------------------------------------------------------------- C
       SUBROUTINE DISTANAPC(Px,Py,Pz,gx1,gy1,gz1,
      &                              gx2,gy2,gz2,
      &                           Pxg1,Pyg1,Pzg1,
-     &                           Pxg2,Pyg2,Pzg2)
+     &                           Pxg2,Pyg2,Pzg2,J)
 
       use turin_irsamc
 
@@ -267,6 +278,7 @@ C ---------------------------------------------------------------------- C
       REAL*8, intent(in) :: Px , Py , Pz
       REAL*8, intent(in) :: gx1 , gy1 , gz1
       REAL*8, intent(in) :: gx2 , gy2 , gz2
+      INTEGER,intent(in) :: J
 
       ! local !
 
@@ -308,26 +320,25 @@ C ********************************************************************** C
   
         call ssd(Px,gx2,Pxg2)
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+! force implementation  !   
+
+!        if (Pxg1 > 0) then 
+!          Pxg1 = - Pxg1 
+!        end if 
+! 
+!        if (Pxg2 < 0) then 
+!          Pxg2 = - Pxg2 
+!        end if 
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+
         Pyg1 = Py - gy1
         Pzg1 = Pz - gz1
         
         Pyg2 = Py - gy2
         Pzg2 = Pz - gz2  
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
-! force implementation  !   
-
-        if (Pxg1 > 0) then 
-          Pxg1 = - Pxg1 
-        end if 
-  
-        if (Pxg2 < 0) then 
-          Pxg2 = - Pxg2 
-        end if 
-  
-  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
-
-        
         end if   
       
       else  
@@ -341,7 +352,6 @@ C ********************************************************************** C
       Pzg2 = Pz - gz2      
 
       end if 
-
      
 !       write(LUPRI,'(a,3f12.6)') "____________________________________"
 !       write(LUPRI,'(a,3f12.6)')
@@ -350,16 +360,16 @@ C ********************************************************************** C
 !       write(LUPRI,'(a,3f12.6)')
 !       write(LUPRI,'(a,3f12.6)') '              Bary_centers  ' 
 !       write(LUPRI,'(a,3f12.6)')
-!       write(LUPRI,'(3(4x,f12.6))')         Px 
+!       write(LUPRI,'(3(4x,f24.16))')         Px 
 !       write(LUPRI,'(a,3f12.6)')
 !       write(LUPRI,'(a,3f12.6)') '              Gaussian locations '
 !       write(LUPRI,'(a,3f12.6)')
-!       write(LUPRI,'(3(4x,f12.6))')         gx1 , gx2  
+!       write(LUPRI,'(3(4x,f24.16))')         gx1 , gx2  
 !       write(LUPRI,'(a,3f12.6)')
 !       write(LUPRI,'(a,3f12.6)') '               Bary-Gaus loc     ' 
-!       write(LUPRI,'(a,3f12.6)')
-!       write(LUPRI,'(3(4x,f12.6))')         Pxg1 , Pxg2
-!       write(LUPRI,'(a,3f12.6)') "" 
+!       write(LUPRI,'(a,3f12.6)') 
+!       write(LUPRI,'(3(4x,f24.16))')         Pxg1 , Pxg2
+!       write(LUPRI,'(a,3f12.6)') ""
 
       End 
 
@@ -372,7 +382,7 @@ C----------------------------------------------------------------------C
 !     ODC from the subroutine DISTANAPC (2nd one in one elctron integrals)
 !     to get the correct integrals
 
-      SUBROUTINE DISTARCP(xa,xp,Xap,ya,yp,Yap,za,zp,Zap)
+      SUBROUTINE DISTARCP(xa,xp,Xap,ya,yp,Yap,za,zp,Zap,J)
 
       use turin_irsamc
 
@@ -388,11 +398,11 @@ C----------------------------------------------------------------------C
       REAL*8, intent(in)  :: xa , xp
       REAL*8, intent(in)  :: ya , yp
       REAL*8, intent(in)  :: za , zp
-
+      integer,intent(in)  ::  J 
       ! local !
 
       integer             :: sign
-      REAL*8              :: nxa , nxp 
+      REAL*8              :: nxp 
 
       ! output !
 
@@ -406,9 +416,9 @@ C**********************************************************************C
 
 !     from her1car.F !
 
-!     DIFCPX = COORC(1,IATOMC) - CORPX
-!     DIFCPY = COORC(2,IATOMC) - CORPY
-!     DIFCPZ = COORC(3,IATOMC) - CORPZ
+!     DIFCPX = COORC(1,IATOMC) - CORPX      ! 
+!     DIFCPY = COORC(2,IATOMC) - CORPY      !
+!     DIFCPZ = COORC(3,IATOMC) - CORPZ      !
 
 C**********************************************************************C
 
@@ -423,18 +433,24 @@ C**********************************************************************C
         if (space == "POLYMER") then
           
         call SSD(xa,xp,Xap)
-
-          if (Xap >= 0) then 
-            sign =  1 
+        
+          if (Xap >=  0) then 
+            sign =  - 1 
           else 
-            sign = -1 
+            sign =    1 
           end if 
 
           nxp = Xap
 
           Xap = sign*(ax**(-2.d0)*(2.d0-2.d0*cos(ax*Xap)))**(0.5d0)
+                
+          if (xa == xp ) then 
+            Xap = 0.d0 
+          end if 
 
-          
+          Yap = ya - yp 
+          Zap = za - zp
+
         end if 
       
       else 
@@ -458,14 +474,13 @@ C**********************************************************************C
 !      write(LUPRI,'(a,3f12.6)')
 !      write(LUPRI,'(a,3f12.6)') '             The distance :' 
 !      write(LUPRI,'(a,3f12.6)')
-!      write(LUPRI,'((11x,4f12.6))')         nxp
+!      write(LUPRI,'((11x,4f24.16))')     xa , xp , Xap
+!      write(LUPRI,'((11x,4f24.16))') xp,xa, Xap 
 !      write(LUPRI,'(a,3f12.6)')
 !      write(LUPRI,'(a,3f12.6)')
 
 
       END 
-
-        
 
 
 C----------------------------------------------------------------------C
@@ -527,12 +542,12 @@ C**********************************************************************C
   
         if (space == "POLYMER") then
   
-              X = x1 - x2
+          X = x1 - x2
   
-              if (abs(X) > 0.5d0*Lx) then
-                  X = Lx - abs(X)
-              end if
-              
+          if (abs(X) > 0.5d0*Lx) then
+            X = Lx - abs(X)
+          end if
+                    
         end if
   
         Y = y1 - y2
@@ -547,6 +562,8 @@ C**********************************************************************C
       end if
   
       DIST = X*X+Y*Y+Z*Z
+
+!      write(lupri,'(a,3f12.6)') 'D         :',DIST
 
       End  
 
@@ -579,6 +596,7 @@ C----------------------------------------------------------------------C
       real*8,intent(in)       :: gy1 , gy2    ! the gaussian coordinates on Y 
       real*8,intent(in)       :: gz1 , gz2    ! the gaussian coordinates on Z 
 
+      ! local ! 
 
       ! output ! 
       
@@ -630,17 +648,39 @@ C**********************************************************************C
           if (e1 == e2) then 
             if (abs(gx1-gx2) <= 0.5d0*Lx) then 
               Xp = 0.5*(gx1 + gx2)
+            else 
+              Xp = 0.5*(gx1 + gx2 + Lx)
+            end if 
+          end if 
+
+          if (first_electron) then 
+            iii = iii + 1 
+            if (abs(gx1-gx2) > 0.5d0*Lx) then 
+              bary_1(iii) = .TRUE.
+            else 
+              bary_1(iii) = .FALSE.
+            end if 
+          end if 
+
+          if (second_electron) then 
+            iij = iij + 1
+            if (abs(gx1-gx2) > 0.5d0*Lx) then 
+              bary_2(iij) = .TRUE.
+            else 
+              bary_2(iij) = .FALSE.
             end if 
           end if 
 
           if (Xp >= Lx) then 
             Xp = Xp  - Lx 
           end if 
-         
+
 !       Xp  = e1*gx1 + e2*gx2 
         Yp  = e1*gy1 + e2*gy2
         Zp  = e1*gz1 + e2*gz2
-         
+
+
+
         end if
        
       else
@@ -660,11 +700,11 @@ C**********************************************************************C
 !      write(LUPRI,'(a,3f12.6)')  ''
 !      write(lupri,'(a,3f12.6)')  '          e1                 e2'
 !      write(lupri,'(a,3f12.6)')  ''
-!      write(lupri,'(4x,f12.6,a,f12.6)')     e1p ,'      ', e2p 
+!      write(lupri,'(4x,f24.16,a,f24.16)')     e1p ,'      ', e2p 
 !      write(lupri,'(a,3f12.6)')  ''
-!      write(lupri,'(a,3f12.6)')  '       gx1         gx2         Xp'
+!      write(lupri,'(a,3f24.16)')  '       gx1         gx2         Xp'
 !      write(lupri,'(a,3f12.6)')  ''
-!      write(lupri,'(3(f24.16))')     gx1  ,  gx2 ,   Xp
+!       write(lupri,'(3(f24.16))')     gx1  ,  gx2 ,   Xp
 !      write(lupri,'(a,3f12.6)')  ''
 
       End
@@ -734,26 +774,27 @@ C**********************************************************************C
         call ssd(Px,gx1,Pxg1)
         call ssd(Px,gx2,Pxg2)
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+! force implementation  !   
+
+!        if (Pxg1 > 0) then 
+!          Pxg1 = - Pxg1 
+!        end if 
+! 
+!        if (Pxg2 < 0) then 
+!          Pxg2 = - Pxg2 
+!        end if 
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+
         Pyg1 = Py - gy1
         Pzg1 = Pz - gz1
          
         Pyg2 = Py - gy2
         Pzg2 = Pz - gz2  
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
-! force implementation  !   
-
-        if (Pxg1 > 0) then 
-          Pxg1 = - Pxg1 
-        end if 
-  
-        if (Pxg2 < 0) then 
-          Pxg2 = - Pxg2 
-        end if 
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
         end if   
-       
+
       else  
      
       Pxg1 = Px - gx1  
@@ -813,6 +854,7 @@ C----------------------------------------------------------------------C
       REAL*8, intent(in)  :: zp1 , zp2
 
 ! local !
+      REAL*8              :: npx 
 
       integer             :: sign 
 
@@ -839,16 +881,44 @@ C**********************************************************************C
   
         if (space == "POLYMER") then
             
-          call SSD(xp1,xp2,Xpp)
+          call SSD(xp1,xp2,Xpp) 
+        
+          if ((xp1 == xp2))   Xpp = 0.d0 
 
-          if (Xpp >= 0) then 
-            sign =   1.d0 
+          if (center1  .and. (.not. center2)) then 
+            Xpp = - Xpp
+          end if 
+
+          if (center2  .and. (.not. center1)) then 
+            Xpp = - Xpp
+          end if 
+
+
+      if   (abs(xp1-xp2) > 0.5d0*Lx - 0.0000000001 ) then 
+        if (abs(xp1-xp2) < 0.5d0*Lx + 0.0000000001 ) then 
+          if (xp1 > xp2) then 
+          Xpp =   0.5d0*Lx 
           else 
-            sign = - 1.d0 
-          end if
+          Xpp = - 0.5d0*lx
+          end if 
+          if (center1 .and. xp1 < xp2 .and. (.not. center2)) then 
+            Xpp = - Xpp 
+          end if 
+          if (center2 .and. xp2 < xp1 .and. (.not. center1)) then 
+            Xpp = - Xpp 
+          end if 
+        end if 
+      end if 
 
-          Xpp = sign*(ax**(-2.d0)*(2.d0-2.d0*cos(ax*Xpp)))**(0.5d0) 
-          
+      if (Xpp >= 0) then 
+        sign =    1.d0 
+      else 
+        sign = -  1.d0 
+      end if       
+
+      Xpp = sign*(ax**(-2.d0)*(2.d0-2.d0*cos(ax*Xpp)))**(0.5d0)
+
+
           Ypp  = yp1 - yp2
           Zpp  = zp1 - zp2
   
@@ -861,19 +931,29 @@ C**********************************************************************C
       Zpp  = zp1 - zp2
   
       end if
+             
+!      write(LUPRI,'(a,3f12.6)') "-------------------------------------"
+!      write(LUPRI,'(a,3f12.6)') '          Electron repultions'
+!      write(LUPRI,'(a,3f12.6)') "-------------------------------------"
+!      write(LUPRI,'(a,3f12.6)') '             Bary_centers'
+!      write(LUPRI,'(a,3f12.6)')
+!      write(LUPRI,'(3(4x,f12.6))')         xp1 , xp2
+!      write(LUPRI,'(a,3f12.6)') 
+!      write(LUPRI,'(a,3f12.6)') '             The distance :' 
+!      write(LUPRI,'(a,3f12.6)')
+!      write(LUPRI,'(3(f24.14))')         xp1,xp2,Xpp
+!      write(LUPRI,'(3(f24.10))')         Xpp
+!      write(LUPRI,'(f24.14,a,L,f24.14,a,L,f24.14)') xp1,' ', center1 ,
+!     &           xp2,' ', center2, Xpp
+!      if (abs(xp1-xp2) > 0.5d0*Lx - 0.0001 ) then 
+!        if (abs(xp1-xp2) < 0.5d0*Lx + 0.0001) then 
+!      write(LUPRI,'(f24.14,a,L,f24.14,a,L,f24.14)') xp1,' ', center1 ,
+!     &           xp2,' ', center2, Xpp
+!        end if 
+!      end if 
+!      write(LUPRI,'(a,3f12.6)')
+!      write(LUPRI,'(a,3f12.6)') 
 
-!       write(LUPRI,'(a,3f12.6)') "-------------------------------------"
-!       write(LUPRI,'(a,3f12.6)') '          Electron repultions'
-!       write(LUPRI,'(a,3f12.6)') "-------------------------------------"
-!       write(LUPRI,'(a,3f12.6)') '             Bary_centers'
-!       write(LUPRI,'(a,3f12.6)')
-!       write(LUPRI,'(3(4x,f12.6))')         xp1 , xp2
-!       write(LUPRI,'(a,3f12.6)') 
-!       write(LUPRI,'(a,3f12.6)') '             The distance :' 
-!       write(LUPRI,'(a,3f12.6)')
-!       write(LUPRI,'((11x,3f12.6))')      xp1 , xp2 ,  Xpp  
-!       write(LUPRI,'(a,3f12.6)')
-!       write(LUPRI,'(a,3f12.6)')
 
       END 
 C----------------------------------------------------------------------C
@@ -975,11 +1055,30 @@ C
           sign = -1 
         end if 
         
-        if (abs(X) >= 0.5*Lx-eta) then 
+        if (abs(X) > 0.5d0*Lx) then 
           X = (-1)*sign*(Lx-abs(X))
         end if 
 
         END
+
 C----------------------------------------------------------------------C
 C----------------------------------------------------------------------C
 C----------------------------------------------------------------------C
+
+      subroutine truncate(number, decimals)
+        implicit none
+        real(kind=8), intent(inout) :: number
+        integer(kind=8), intent(in) :: decimals
+        real(kind=8) :: factor
+      
+        ! Calculate the factor for truncation
+        factor = 10.0d0 ** decimals
+      
+        ! Truncate the number
+        number = int(number * factor,8) / factor
+      end subroutine truncate
+
+C----------------------------------------------------------------------C
+C----------------------------------------------------------------------C
+C----------------------------------------------------------------------C      
+

@@ -273,7 +273,7 @@ C
 C
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !     turin_irsamc    6 
-         IF (IPRINT .GE. 6) THEN
+         IF (IPRINT .GE. 0) THEN
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             WRITE (LUPRI,'(2X,A,I5,A/)')
      &         'Type 0 integral buffer #',NBUF,' has been written.'

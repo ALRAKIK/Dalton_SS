@@ -2170,20 +2170,20 @@ C             to tell this is a point charge /hjaaj Nov 2003
   100 CONTINUE   !  DO 100 N = 1,NONT
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !     turin_irsamc 
-!      if (toura) then 
-!         if (space == "POLYMER") then
+!     if (toura) then 
+!        if (space == "POLYMER") then
 !
-!            do I = 1, NCTOT
-!               if (CORD(1,I) - CORD(1,I-1) < 0.d0) then 
-!                  CORD(1,I) = CORD(1,I) + Lx   
-!               end if
+!           do I = 1, NCTOT
+!              if (CORD(1,I) - CORD(1,I-1) < 0.d0) then 
+!                 CORD(1,I) = CORD(1,I) + Lx   
+!              end if
 !
-!            end do 
+!           end do 
 !
-!         end if 
-!      end if  
+!        end if 
+!     end if  
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
-      fa = CORD(1,1)
+
       RETURN
 C
 C       Error messages:

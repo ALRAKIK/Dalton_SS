@@ -1913,7 +1913,7 @@ C  /* Deck twoods */
      &                  NODV,NOPV,THRESH,IPRINT,FIRST,SQ12EL,INDHSQ,
      &                  IODDHR,INDHER,IFCTYP,ADISTR,JSTRSH,NPRIMS,
      &                  NCONTS,IORBSH,WRKBUF,ICEDIF,
-     &                  IFTHRS,DINTSKP,GABRAO,DMRAO,DMRSO,IREPDM,GENCNT)
+     &                  IFTHRS,DINTSKP,GABRAO,DMRAO,DMRSO,IREPDM,GENCNT)             
 #include "implicit.h"
 #include "priunit.h"
 #include "aovec.h"
@@ -2105,6 +2105,10 @@ C  /* Deck twood1 */
      &                  NPRIMS,NCONTS,IORBSH,WRKBUF,
      &                  GABRAO,DMRAO,DMRSO,DINTSKP,IREPDM,IXPAB,IXPCD,
      &                  GENCNT)
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!     turin_irsamc 
+         use turin_irsamc
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!               
 #include "implicit.h"
 #include "priunit.h"
 #include "r12int.h"
@@ -2191,6 +2195,16 @@ C     ========================================
 C
       TPRAB = .FALSE.
 C
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!     turin_irsamc 
+         if (toura) then 
+            if (space == "POLYMER") then 
+               iii             = 0 
+               first_electron  = 1 
+               second_electron = 0
+            end if 
+          end if 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!          
       CALL ODCVEC(COORAB,EXPAB,FACAB,CONTA,CONTB,JMAXA,JMAXB,NSETA,
      &            NSETB,NUCA,NUCB,NUCTAB,NORBA,NORBB,NPCOA,NPCOB,NUCSAB,
      &            JSTRA,JSTRB,TCONAB,TPRAB,GENAB,12,THRESH,MAXDER,
@@ -2204,12 +2218,24 @@ C     Overlap distributions for second electron
 C     =========================================
 C
       TPRCD = .FALSE.
+C     
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!     turin_irsamc 
+      if (toura) then 
+         if (space == "POLYMER") then 
+            iij             = 0 
+            first_electron  = 0 
+            second_electron = 1
+         end if 
+      end if 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       CALL ODCVEC(COORCD,EXPCD,FACCD,CONTC,CONTD,JMAXC,JMAXD,NSETC,
      &            NSETD,NUCC,NUCD,NUCTCD,NORBC,NORBD,NPCOC,NPCOD,NUCSCD,
      &            JSTRC,JSTRD,TCONCD,TPRCD,GENCD,34,THRESH,MAXDER,
      &            MULC,MULD,NODCCD,NORTCD,NINDCD,NPNTCD,NREDCD,
      &            KHKTC,KHKTD,EXPECT,DIRFCK,WORK,LWORK,RPRICD,RCNTCD,
-     &            IXPCD,IPRINT)
+     &            IXPCD,IPRINT)    
+C   
       IF (ISUM(NODCCD,NUCTCD,1) .EQ. 0 .AND. .NOT.LAST) RETURN
 C
       CALL GETLMN(LMNVLS,IPRINT)
