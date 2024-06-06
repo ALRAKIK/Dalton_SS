@@ -52,7 +52,7 @@ C
      &      ' Metric is changed by direct perturbation theory (DPT) '
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !     turin_irsamc     4 
-            IF (IPRINT .GE. 4) WRITE (LUPRI,'(/A)') ' Overlap matrix'
+            IF (IPRINT .GE. 0) WRITE (LUPRI,'(/A)') ' Overlap matrix'
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!            
             WRITE (LUONEL) LAB123, TITLES
          ELSE IF (ITYPE .EQ. 2) THEN
@@ -61,14 +61,14 @@ C
      &      ' direct perturbation theory (DPT) '
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !     turin_irsamc   4
-            IF (IPRINT .GE. 4)
+            IF (IPRINT .GE. 0)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!            
      &         WRITE (LUPRI,'(/A)')' One-el. Ham. matrix'
             WRITE (LUONEL) LAB123, TITLEH
          ELSE IF (ITYPE .EQ. 3) THEN
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !     turin_irsamc   4          
-            IF (IPRINT .GE. 4) WRITE (LUPRI,'(/A)')' Kin. energy matrix'
+            IF (IPRINT .GE. 0) WRITE (LUPRI,'(/A)')' Kin. energy matrix'
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!            
             WRITE (LUONEL) LAB123, TITLET
          END IF
@@ -81,32 +81,42 @@ C
      *      AINT = AINT + DPTFAC * DP5 * ALPHAC**2 * STHMAT(IAB,3)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !     turin_irsamc THRS_OUT          
-            IF (ABS(AINT) .GT. THRS_OUT) THEN
+!            IF (ABS(AINT) .GT. THRS_OUT) THEN
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!               
                ICOUNT = ICOUNT + 1
                BUF(ICOUNT) = AINT
                IBUF(ICOUNT) = IAB
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!     turin_irsamc                               
                IF (ICOUNT .EQ. 600) THEN
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!                  
                   WRITE (LUONEL) BUF, IBUF, ICOUNT
                   NBUF = NBUF + 1
-                  IF (IPRINT .GE. 4) THEN
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!     turin_irsamc                               
+!                  IF (IPRINT .GE. 4) THEN
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!                  
+
                      WRITE (LUPRI, '(//A,2I5,A,2I8)')
      *                  ' ICOUNT, NBUF  ', ICOUNT, NBUF,
      *                  ' NNBAST, NNBASX', NNBAST, NNBASX
-                  END IF
-                  IF (IPRINT .GE. 5) THEN
+!                  END IF
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!     turin_irsamc            D24.12
+!                  IF (IPRINT .GE. 5) THEN
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!     
                      DO I = 1, ICOUNT
                         LABEL = IBUF(I)
                         IORBA = INDEX1(LABEL)
                         IORBB = INDEX2(LABEL)
-                        WRITE (LUPRI,'(1X,3I5,5X,D24.12)')
+                        WRITE (LUPRI,'(1X,3I5,5X,F24.12)')
      *                        LABEL, IORBA, IORBB, BUF(I)
                      END DO
-                  END IF
+!                  END IF
                   ICOUNT = 0
                END IF
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!               
-            END IF
+!           END IF
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!            
          END DO
          NCOUNT = 600*NBUF + ICOUNT
@@ -123,8 +133,8 @@ C
      *         ' NNBAST, NNBASX', NNBAST, NNBASX
          END IF
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!     turin_irsamc 5                   
-         IF (IPRINT .GE. 5) THEN
+!     turin_irsamc 5                   D24.12
+         IF (IPRINT .GE. 0) THEN
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!            
              DO 500 I = 1, ICOUNT
                 LABEL = IBUF(I)
@@ -137,7 +147,7 @@ C
          WRITE (LUONEL) BUF, IBUF, -1
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !     turin_irsamc   3                   
-         IF (IPRINT .GE. 3) THEN
+         IF (IPRINT .GE. 0) THEN
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!            
             PERCNT = 100.0D0*NCOUNT
             PERCNT = PERCNT / IAB

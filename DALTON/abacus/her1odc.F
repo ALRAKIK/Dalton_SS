@@ -181,7 +181,7 @@ C
 !      PBZ = CORPZ - CORBZ
 
       call DISTANAPC(CORPX,CORPY,CORPZ,CORAX,CORAY,
-     &               CORAZ,CORBX,CORBY,CORPZ,
+     &               CORAZ,CORBX,CORBY,CORBZ,
      &               PAX,PAY,PAZ,PBX,PBY,PBZ,JMAX)
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  

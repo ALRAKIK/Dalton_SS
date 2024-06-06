@@ -6,7 +6,8 @@ C----------------------------------------------------------------------C
       
       ! logical !
 
-      LOGICAL    toura 
+      LOGICAL    toura , same_center_X , same_center_Y 
+      LOGICAL    same_center_Z
       
       ! character ! 
       
@@ -92,18 +93,70 @@ C ********************************************************************** C
 
       if (toura) then
 
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !            1D              !
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
         if (space == "POLYMER") then
   
-          X = x1 - x2                       ! calculate the distance in normal way 
+        X = x1 - x2                       ! calculate the distance in normal way 
               
+        if (abs(X) > 0.5d0*Lx) then       ! PBC 
+          X = Lx - abs(X)
+        end if
+    
+        Y = y1 - y2
+        Z = z1 - z2  
+
+        end if
+
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !            2D              !
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+        if (space == "SLAB") then
+  
+        X = x1 - x2                       ! calculate the distance in normal way 
+                
+        if (abs(X) > 0.5d0*Lx) then       ! PBC 
+          X = Lx - abs(X)
+        end if
+      
+        Y = y1 - y2
+
+        if (abs(Y) > 0.5d0*Ly) then       ! PBC 
+          Y = Ly - abs(Y)
+        end if
+    
+        Z = z1 - z2  
+  
+        end if
+
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !            3D              !
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+        if (space == "CRYSTAL") then
+  
+          X = x1 - x2                       ! calculate the distance in normal way 
+                  
           if (abs(X) > 0.5d0*Lx) then       ! PBC 
             X = Lx - abs(X)
           end if
-
+        
           Y = y1 - y2
+  
+          if (abs(Y) > 0.5d0*Ly) then       ! PBC 
+            Y = Ly - abs(Y)
+          end if
+      
           Z = z1 - z2  
 
+          if (abs(Z) > 0.5d0*Lz) then       ! PBC 
+            Z = Lz - abs(Z)
           end if
+      
+          end if  
         
       else
   
@@ -133,7 +186,8 @@ C ---------------------------------------------------------------------- C
       SUBROUTINE    BarCENT(e1,e2,e1p,e2p,
      &                         gx1,gx2,Xp,
      &                         gy1,gy2,Yp,
-     &                         gz1,gz2,Zp)
+     &                         gz1,gz2,Zp,
+     &                         NUMO1 , NUMO2)
       
       use turin_irsamc
       
@@ -145,11 +199,12 @@ C ---------------------------------------------------------------------- C
       
         ! input !
       
-         real*8,intent(in)       :: e1  , e2     ! e1/(e1+e2) , e2/(e1+e2)
-         real*8,intent(in)       :: e1p , e2p    ! this just to print as the program calculate e1/(e1+e2) and e2/(e1+e2) before
-         real*8,intent(in)       :: gx1 , gx2    ! the gaussian coordinates on X 
-         real*8,intent(in)       :: gy1 , gy2    ! the gaussian coordinates on Y 
-         real*8,intent(in)       :: gz1 , gz2    ! the gaussian coordinates on Z 
+         real*8,intent(in)       :: e1    , e2     ! e1/(e1+e2) , e2/(e1+e2)
+         real*8,intent(in)       :: e1p   , e2p    ! this just to print as the program calculate e1/(e1+e2) and e2/(e1+e2) before
+         real*8,intent(in)       :: gx1   , gx2    ! the gaussian coordinates on X 
+         real*8,intent(in)       :: gy1   , gy2    ! the gaussian coordinates on Y 
+         real*8,intent(in)       :: gz1   , gz2    ! the gaussian coordinates on Z 
+         integer, intent(in)     :: NUMO1 , NUMO2
       
       
         ! output ! 
@@ -175,7 +230,11 @@ C ********************************************************************** C
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
       if (toura) then
-      
+        
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !            1D            !
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
         if (space == 'POLYMER') then 
 
           if (abs(gx1-gx2) > 0.5d0*Lx) then 
@@ -202,6 +261,12 @@ C ********************************************************************** C
 
           if (gx1 == gx2) then 
             Xp = gx1 
+            if (NUMO1 .ne. NUMO2) then 
+!            write(lupri,'(I3,f12.6,I3,f12.6)')NUMO1 ,e1p ,NUMO2 ,e2p
+            same_center_X = .TRUE. 
+            else
+            same_center_X = .FALSE.  
+            end if 
           end if 
 
           if (e1 == e2) then 
@@ -216,11 +281,253 @@ C ********************************************************************** C
             Xp = Xp - Lx
           end if 
 
-!        call truncate(Xp,decimals)
-
 !       Xp  = e1*gx1 + e2*gx2 
         Yp  = e1*gy1 + e2*gy2
         Zp  = e1*gz1 + e2*gz2
+
+        end if
+
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !            2D            !
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+        if (space == 'SLAB') then 
+
+          if (abs(gx1-gx2) > 0.5d0*Lx) then 
+
+            if (gx1 > gx2) then 
+
+              Xp = e1*gx1 + e2*(gx2+Lx)
+
+            else if (gx2 > gx1) then
+
+              Xp = e1*(gx1+Lx)+e2*gx2
+            
+            else 
+
+              Xp = e1*gx1+e2*gx2 
+            
+            end if 
+
+        else 
+
+        Xp = e1*gx1+e2*gx2   
+
+        end if 
+
+        if (gx1 == gx2) then 
+          Xp = gx1 
+          if (NUMO1 .ne. NUMO2) then 
+!            write(lupri,'(I3,f12.6,I3,f12.6)')NUMO1 ,e1p ,NUMO2 ,e2p
+          same_center_X = .TRUE. 
+          else
+          same_center_X = .FALSE.  
+          end if 
+        end if 
+
+        if (e1 == e2) then 
+          if (abs(gx1-gx2) <= 0.5d0*Lx) then 
+            Xp = 0.5*(gx1 + gx2)
+          else 
+            Xp = 0.5*(gx1 + gx2 + Lx)
+          end if 
+        end if 
+
+        if (XP >= Lx) then 
+          Xp = Xp - Lx
+        end if 
+
+        if (abs(gy1-gy2) > 0.5d0*Ly) then 
+
+          if (gy1 > gy2) then 
+
+            Yp = e1*gy1 + e2*(gy2+Ly)
+
+          else if (gy2 > gy1) then
+
+            Yp = e1*(gy1+Ly)+e2*gy2
+          
+          else 
+
+            Yp = e1*gy1+e2*gy2 
+          
+          end if 
+
+      else 
+
+      Yp = e1*gy1+e2*gy2   
+
+      end if 
+
+      if (gy1 == gy2) then 
+        Yp = gy1 
+        if (NUMO1 .ne. NUMO2) then 
+!            write(lupri,'(I3,f12.6,I3,f12.6)')NUMO1 ,e1p ,NUMO2 ,e2p
+        same_center_Y = .TRUE. 
+        else
+        same_center_Y = .FALSE.  
+        end if 
+      end if 
+
+      if (e1 == e2) then 
+        if (abs(gy1-gy2) <= 0.5d0*Ly) then 
+          Yp = 0.5*(gy1 + gy2)
+        else 
+          Yp = 0.5*(gy1 + gy2 + Lx)
+        end if 
+      end if 
+
+      if (Yp >= Ly) then 
+        Yp = Yp - Ly
+      end if 
+
+!       Xp  = e1*gx1 + e2*gx2 
+!       Yp  = e1*gy1 + e2*gy2
+        Zp  = e1*gz1 + e2*gz2
+
+        end if
+
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !            3D            !
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+        if (space == 'CRYSTAL') then 
+
+          if (abs(gx1-gx2) > 0.5d0*Lx) then 
+
+            if (gx1 > gx2) then 
+
+              Xp = e1*gx1 + e2*(gx2+Lx)
+
+            else if (gx2 > gx1) then
+
+              Xp = e1*(gx1+Lx)+e2*gx2
+            
+            else 
+
+              Xp = e1*gx1+e2*gx2 
+            
+            end if 
+
+        else 
+
+        Xp = e1*gx1+e2*gx2   
+
+        end if 
+
+        if (gx1 == gx2) then 
+          Xp = gx1 
+          if (NUMO1 .ne. NUMO2) then 
+!            write(lupri,'(I3,f12.6,I3,f12.6)')NUMO1 ,e1p ,NUMO2 ,e2p
+          same_center_X = .TRUE. 
+          else
+          same_center_X = .FALSE.  
+          end if 
+        end if 
+
+        if (e1 == e2) then 
+          if (abs(gx1-gx2) <= 0.5d0*Lx) then 
+            Xp = 0.5*(gx1 + gx2)
+          else 
+            Xp = 0.5*(gx1 + gx2 + Lx)
+          end if 
+        end if 
+
+        if (XP >= Lx) then 
+          Xp = Xp - Lx
+        end if 
+
+        if (abs(gy1-gy2) > 0.5d0*Ly) then 
+
+          if (gy1 > gy2) then 
+
+            Yp = e1*gy1 + e2*(gy2+Ly)
+
+          else if (gy2 > gy1) then
+
+            Yp = e1*(gy1+Ly)+e2*gy2
+          
+          else 
+
+            Yp = e1*gy1+e2*gy2 
+          
+          end if 
+
+      else 
+
+      Yp = e1*gy1+e2*gy2   
+
+      end if 
+
+      if (gy1 == gy2) then 
+        Yp = gy1 
+        if (NUMO1 .ne. NUMO2) then 
+!            write(lupri,'(I3,f12.6,I3,f12.6)')NUMO1 ,e1p ,NUMO2 ,e2p
+        same_center_Y = .TRUE. 
+        else
+        same_center_Y = .FALSE.  
+        end if 
+      end if 
+
+      if (e1 == e2) then 
+        if (abs(gy1-gy2) <= 0.5d0*Ly) then 
+          Yp = 0.5*(gy1 + gy2)
+        else 
+          Yp = 0.5*(gy1 + gy2 + Ly)
+        end if 
+      end if 
+
+      if (Yp >= Ly) then 
+        Yp = Yp - Ly
+      end if 
+
+      if (abs(gz1-gz2) > 0.5d0*Lz) then 
+
+      if (gz1 > gz2) then 
+
+        Zp = e1*gz1 + e2*(gz2+Lz)
+
+      else if (gz2 > gz1) then
+
+        Zp = e1*(gz1+Lz)+e2*gz2
+        
+      else 
+
+        Zp = e1*gz1+e2*gz2 
+        
+      end if 
+
+      else 
+        
+      Zp = e1*gz1+e2*gz2   
+        
+      end if 
+
+      if (gz1 == gz2) then 
+        Zp = gz1 
+        if (NUMO1 .ne. NUMO2) then 
+!          write(lupri,'(I3,f12.6,I3,f12.6)')NUMO1 ,e1p ,NUMO2 ,e2p
+        same_center_Z = .TRUE. 
+        else
+        same_center_Z = .FALSE.  
+        end if 
+      end if 
+
+      if (e1 == e2) then 
+        if (abs(gz1-gz2) <= 0.5d0*Lz) then 
+          Zp = 0.5*(gz1 + gz2)
+        else 
+          Zp = 0.5*(gz1 + gz2 + Lz)
+        end if 
+      end if 
+
+      if (Zp >= Lz) then 
+        Zp = Zp - Lz
+      end if 
+
+!       Xp  = e1*gx1 + e2*gx2 
+!       Yp  = e1*gy1 + e2*gy2
+!       Zp  = e1*gz1 + e2*gz2
 
         end if
       
@@ -232,21 +539,21 @@ C ********************************************************************** C
       
       end if      
 
-!        write(lupri,'(a,3f12.6)')  '###################################'
-!        write(lupri,'(a,3f12.6)')  ''
-!        write(lupri,'(a,3f12.6)')  ''
-!        write(LUPRI,'(a,3f12.6)')  "***********************************"
-!        write(LUPRI,'(a,3f12.6)')  '               Barycenter'
-!        write(LUPRI,'(a,3f12.6)')  "***********************************"
-!        write(LUPRI,'(a,3f12.6)')  ''
-!        write(lupri,'(a,3f24.16)')  '          e1                 e2'
-!        write(lupri,'(a,3f12.6)')  ''
-!        write(lupri,'(4x,f24.16,a,f24.16)')     e1p ,'      ', e2p 
-!        write(lupri,'(a,3f12.6)')  ''
-!        write(lupri,'(a,3f12.6)')  '       gx1         gx2         Xp'
-!        write(lupri,'(a,3f12.6)')  ''
-!        write(lupri,'(3(f24.16))')     gx1  ,  gx2 ,   Xp
-!        write(lupri,'(a,3f12.6)')  ''
+  !      write(lupri,'(a,3f12.6)')  '###################################'
+  !      write(lupri,'(a,3f12.6)')  ''
+  !      write(lupri,'(a,3f12.6)')  ''
+  !      write(LUPRI,'(a,3f12.6)')  "***********************************"
+  !      write(LUPRI,'(a,3f12.6)')  '               Barycenter'
+  !      write(LUPRI,'(a,3f12.6)')  "***********************************"
+  !      write(LUPRI,'(a,3f12.6)')  ''
+  !      write(lupri,'(a,3f24.16)')  '          e1                 e2'
+  !      write(lupri,'(a,3f12.6)')  ''
+  !      write(lupri,'(4x,f24.16,a,f24.16)')     e1p ,'      ', e2p 
+  !      write(lupri,'(a,3f12.6)')  ''
+  !      write(lupri,'(a,3f12.6)')  '       gx1         gx2         Xp'
+  !      write(lupri,'(a,3f12.6)')  ''
+  !      write(lupri,'(3(f24.16))')     gx1  ,  gx2 ,   Xp
+  !      write(lupri,'(a,3f12.6)')  ''
 
         End
 C ---------------------------------------------------------------------- C
@@ -314,11 +621,21 @@ C ********************************************************************** C
 
       if (toura) then
 
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !           1D             !
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
         if (space == "POLYMER") then 
         
         call ssd(Px,gx1,Pxg1)
   
         call ssd(Px,gx2,Pxg2)
+
+!!EUC!! 
+!        call essd(Px,gx1,Pxg1)
+!!EUC!!   
+!        call essd(Px,gx2,Pxg2)
+
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 ! force implementation  !   
@@ -340,7 +657,46 @@ C ********************************************************************** C
         Pzg2 = Pz - gz2  
 
         end if   
+
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !           2D             !
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+        if (space == "SLAB") then 
+        
+          call ssd(Px,gx1,Pxg1)
+    
+          call ssd(Px,gx2,Pxg2)
+          
+          call ssd(Py,gy1,Pyg1)
+    
+          call ssd(Py,gy2,Pyg2)
+          
+          Pzg1 = Pz - gz1          
+          Pzg2 = Pz - gz2  
+  
+          end if        
+
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !           3D             !
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+          if (space == "CRYSTAL") then 
+        
+            call ssd(Px,gx1,Pxg1)
       
+            call ssd(Px,gx2,Pxg2)
+            
+            call ssd(Py,gy1,Pyg1)
+      
+            call ssd(Py,gy2,Pyg2)
+            
+            call ssd(Pz,gz1,Pzg1)
+      
+            call ssd(Pz,gz2,Pzg2)
+    
+            end if          
+
       else  
       
       Pxg1 = Px - gx1  
@@ -429,30 +785,132 @@ C**********************************************************************C
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
       if (toura) then 
-      
+        
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !           1D             !
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
         if (space == "POLYMER") then
           
         call SSD(xa,xp,Xap)
         
           if (Xap >=  0) then 
-            sign =  - 1 
+            sign =     1 
           else 
-            sign =    1 
+            sign =  -   1 
           end if 
 
-          nxp = Xap
+          if (xa == xp ) Xap = 0.d0 
+
+          Xap = sign*abs(Xap)
 
           Xap = sign*(ax**(-2.d0)*(2.d0-2.d0*cos(ax*Xap)))**(0.5d0)
-                
-          if (xa == xp ) then 
-            Xap = 0.d0 
-          end if 
 
+          if (same_center_X) Xap = 0.d0 
+                
           Yap = ya - yp 
           Zap = za - zp
 
-        end if 
-      
+        end if
+        
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !           2D             !
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+        if (space == "SLAB") then
+          
+          call SSD(xa,xp,Xap)
+          
+            if (Xap >=  0) then 
+              sign =     1 
+            else 
+              sign =  -   1 
+            end if 
+  
+            if (xa == xp ) Xap = 0.d0 
+  
+            Xap = sign*abs(Xap)
+  
+            Xap = sign*(ax**(-2.d0)*(2.d0-2.d0*cos(ax*Xap)))**(0.5d0)
+  
+            if (same_center_X) Xap = 0.d0 
+                  
+            call SSD(ya,yp,Yap)
+          
+            if (Yap >=  0) then 
+              sign =     1 
+            else 
+              sign =  -   1 
+            end if 
+  
+            if (ya == yp ) Yap = 0.d0 
+  
+            Yap = sign*abs(Yap)
+  
+            Yap = sign*(ay**(-2.d0)*(2.d0-2.d0*cos(ay*Yap)))**(0.5d0)
+  
+            if (same_center_Y) Yap = 0.d0 
+                  
+            Zap = za - zp
+  
+          end if
+
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !           3D             !
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+          if (space == "CRYSTAL") then
+          
+            call SSD(xa,xp,Xap)
+            
+              if (Xap >=  0) then 
+                sign =     1 
+              else 
+                sign =  -   1 
+              end if 
+    
+              if (xa == xp ) Xap = 0.d0 
+    
+              Xap = sign*abs(Xap)
+    
+              Xap = sign*(ax**(-2.d0)*(2.d0-2.d0*cos(ax*Xap)))**(0.5d0)
+    
+              if (same_center_X) Xap = 0.d0 
+                    
+              call SSD(ya,yp,Yap)
+            
+              if (Yap >=  0) then 
+                sign =     1 
+              else 
+                sign =  -   1 
+              end if 
+    
+              if (ya == yp ) Yap = 0.d0 
+    
+              Yap = sign*abs(Yap)
+    
+              Yap = sign*(ay**(-2.d0)*(2.d0-2.d0*cos(ay*Yap)))**(0.5d0)
+    
+              if (same_center_Y) Yap = 0.d0 
+                    
+              call SSD(za,zp,Zap)
+            
+              if (Zap >=  0) then 
+                sign =     1 
+              else 
+                sign =  -   1 
+              end if 
+    
+              if (za == zp ) Zap = 0.d0 
+    
+              Zap = sign*abs(Zap)
+    
+              Zap = sign*(az**(-2.d0)*(2.d0-2.d0*cos(az*Zap)))**(0.5d0)
+    
+              if (same_center_Z) Zap = 0.d0 
+    
+            end if
+
       else 
       
       Xap  = xa - xp
@@ -474,8 +932,8 @@ C**********************************************************************C
 !      write(LUPRI,'(a,3f12.6)')
 !      write(LUPRI,'(a,3f12.6)') '             The distance :' 
 !      write(LUPRI,'(a,3f12.6)')
-!      write(LUPRI,'((11x,4f24.16))')     xa , xp , Xap
-!      write(LUPRI,'((11x,4f24.16))') xp,xa, Xap 
+!       write(LUPRI,'((11x,4f24.16))') xa,xp, Xap
+!      write(LUPRI,'((11x,4f24.8))') xa,xp, Xap 
 !      write(LUPRI,'(a,3f12.6)')
 !      write(LUPRI,'(a,3f12.6)')
 
@@ -539,7 +997,11 @@ C**********************************************************************C
 C**********************************************************************C
 
       if (toura) then
-  
+
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !            1D           !
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!
+
         if (space == "POLYMER") then
   
           X = x1 - x2
@@ -547,11 +1009,60 @@ C**********************************************************************C
           if (abs(X) > 0.5d0*Lx) then
             X = Lx - abs(X)
           end if
-                    
+
+          Y = y1 - y2
+          Z = z1 - z2
+  
+        end if
+
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !            2D           !
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+        if (space == "SLAB") then
+  
+          X = x1 - x2
+  
+          if (abs(X) > 0.5d0*Lx) then
+            X = Lx - abs(X)
+          end if
+
+          Y = y1 - y2
+
+          if (abs(Y) > 0.5d0*Ly) then
+            Y = Ly - abs(Y)
+          end if
+
+          Z = z1 - z2
+  
+        end if        
+
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !            3D           !
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+        if (space == "CRYSTAL") then
+  
+          X = x1 - x2
+  
+          if (abs(X) > 0.5d0*Lx) then
+            X = Lx - abs(X)
+          end if
+
+          Y = y1 - y2
+
+          if (abs(Y) > 0.5d0*Ly) then
+            Y = Ly - abs(Y)
+          end if
+
+          Z = z1 - z2
+
+          if (abs(Z) > 0.5d0*Lz) then
+            Z = Lz - abs(Z)
+          end if
+  
         end if
   
-        Y = y1 - y2
-        Z = z1 - z2
   
       else
   
@@ -616,6 +1127,10 @@ C**********************************************************************C
       
       if (toura) then
       
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !            1D            !
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
         if (space == 'POLYMER') then 
         
           if (abs(gx1-gx2) > 0.5d0*Lx) then 
@@ -653,23 +1168,23 @@ C**********************************************************************C
             end if 
           end if 
 
-          if (first_electron) then 
-            iii = iii + 1 
-            if (abs(gx1-gx2) > 0.5d0*Lx) then 
-              bary_1(iii) = .TRUE.
-            else 
-              bary_1(iii) = .FALSE.
-            end if 
-          end if 
+!          if (first_electron) then 
+!            iii = iii + 1 
+!            if (abs(gx1-gx2) > 0.5d0*Lx) then 
+!              bary_1(iii) = .TRUE.
+!            else 
+!              bary_1(iii) = .FALSE.
+!            end if 
+!          end if 
 
-          if (second_electron) then 
-            iij = iij + 1
-            if (abs(gx1-gx2) > 0.5d0*Lx) then 
-              bary_2(iij) = .TRUE.
-            else 
-              bary_2(iij) = .FALSE.
-            end if 
-          end if 
+!          if (second_electron) then 
+!            iij = iij + 1
+!            if (abs(gx1-gx2) > 0.5d0*Lx) then 
+!              bary_2(iij) = .TRUE.
+!            else 
+!              bary_2(iij) = .FALSE.
+!            end if 
+!          end if 
 
           if (Xp >= Lx) then 
             Xp = Xp  - Lx 
@@ -679,9 +1194,226 @@ C**********************************************************************C
         Yp  = e1*gy1 + e2*gy2
         Zp  = e1*gz1 + e2*gz2
 
+        end if
 
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !            2D            !
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+        if (space == 'SLAB') then 
+        
+          if (abs(gx1-gx2) > 0.5d0*Lx) then 
+          
+              if (gx1 > gx2) then 
+              
+                Xp = e1*gx1 + e2*(gx2+Lx)
+              
+              else if (gx2 > gx1) then
+              
+                Xp = e1*(gx1+Lx)+e2*gx2
+              
+              else 
+              
+                Xp = e1*gx1+e2*gx2 
+              
+              end if 
+             
+          else 
+          
+          Xp = e1*gx1+e2*gx2   
+          
+          end if 
+
+          if (gx1 == gx2 ) then 
+            Xp = gx1 
+          end if 
+
+
+          if (e1 == e2) then 
+            if (abs(gx1-gx2) <= 0.5d0*Lx) then 
+              Xp = 0.5*(gx1 + gx2)
+            else 
+              Xp = 0.5*(gx1 + gx2 + Lx)
+            end if 
+          end if 
+
+          if (Xp >= Lx) then 
+            Xp = Xp  - Lx 
+          end if 
+
+          if (abs(gy1-gy2) > 0.5d0*Ly) then 
+          
+            if (gy1 > gy2) then 
+            
+              Yp = e1*gy1 + e2*(gy2+Ly)
+            
+            else if (gy2 > gy1) then
+            
+              Yp = e1*(gy1+Ly)+e2*gy2
+            
+            else 
+            
+              Yp = e1*gy1+e2*gy2 
+            
+            end if 
+           
+        else 
+        
+        Yp = e1*gy1+e2*gy2   
+        
+        end if 
+
+        if (gy1 == gy2 ) then 
+          Yp = gy1 
+        end if 
+
+
+        if (e1 == e2) then 
+          if (abs(gy1-gy2) <= 0.5d0*Ly) then 
+            Yp = 0.5*(gy1 + gy2)
+          else 
+            Yp = 0.5*(gy1 + gy2 + Ly)
+          end if 
+        end if 
+
+        if (Yp >= Ly) then 
+          Yp = Yp  - Ly 
+        end if
+
+!       Xp  = e1*gx1 + e2*gx2 
+!       Yp  = e1*gy1 + e2*gy2
+        Zp  = e1*gz1 + e2*gz2
 
         end if
+
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !            3D            !
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+        if (space == 'CRYSTAL') then 
+        
+          if (abs(gx1-gx2) > 0.5d0*Lx) then 
+          
+              if (gx1 > gx2) then 
+              
+                Xp = e1*gx1 + e2*(gx2+Lx)
+              
+              else if (gx2 > gx1) then
+              
+                Xp = e1*(gx1+Lx)+e2*gx2
+              
+              else 
+              
+                Xp = e1*gx1+e2*gx2 
+              
+              end if 
+             
+          else 
+          
+          Xp = e1*gx1+e2*gx2   
+          
+          end if 
+
+          if (gx1 == gx2 ) then 
+            Xp = gx1 
+          end if 
+
+
+          if (e1 == e2) then 
+            if (abs(gx1-gx2) <= 0.5d0*Lx) then 
+              Xp = 0.5*(gx1 + gx2)
+            else 
+              Xp = 0.5*(gx1 + gx2 + Lx)
+            end if 
+          end if 
+
+          if (Xp >= Lx) then 
+            Xp = Xp  - Lx 
+          end if 
+
+          if (abs(gy1-gy2) > 0.5d0*Ly) then 
+          
+            if (gy1 > gy2) then 
+            
+              Yp = e1*gy1 + e2*(gy2+Ly)
+            
+            else if (gy2 > gy1) then
+            
+              Yp = e1*(gy1+Ly)+e2*gy2
+            
+            else 
+            
+              Yp = e1*gy1+e2*gy2 
+            
+            end if 
+           
+        else 
+        
+        Yp = e1*gy1+e2*gy2   
+        
+        end if 
+
+        if (gy1 == gy2 ) then 
+          Yp = gy1 
+        end if 
+
+
+        if (e1 == e2) then 
+          if (abs(gy1-gy2) <= 0.5d0*Ly) then 
+            Yp = 0.5*(gy1 + gy2)
+          else 
+            Yp = 0.5*(gy1 + gy2 + Ly)
+          end if 
+        end if 
+
+        if (Xp >= Ly) then 
+          Yp = Yp  - Ly 
+        end if
+
+        if (abs(gz1-gz2) > 0.5d0*Lz) then 
+          
+          if (gz1 > gz2) then 
+          
+            Zp = e1*gz1 + e2*(gz2+Lz)
+          
+          else if (gz2 > gz1) then
+          
+            Zp = e1*(gz1+Lz)+e2*gz2
+          
+          else 
+          
+            Zp = e1*gz1+e2*gz2 
+          
+          end if 
+         
+        else 
+      
+        Zp = e1*gz1+e2*gz2   
+      
+        end if 
+
+        if (gz1 == gz2 ) then 
+          Zp = gz1 
+        end if 
+
+
+        if (e1 == e2) then 
+          if (abs(gz1-gz2) <= 0.5d0*Lz) then 
+            Zp = 0.5*(gz1 + gz2)
+          else 
+            Zp = 0.5*(gz1 + gz2 + Lz)
+          end if 
+        end if 
+
+        if (Zp >= Lz) then 
+          Zp = Zp  - Lz 
+        end if
+
+!       Xp  = e1*gx1 + e2*gx2 
+!       Yp  = e1*gy1 + e2*gy2
+!       Zp  = e1*gz1 + e2*gz2
+
+        end if        
        
       else
       
@@ -769,23 +1501,14 @@ C**********************************************************************C
 
       if (toura) then
      
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !           1D             !
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
         if (space == "POLYMER") then 
        
         call ssd(Px,gx1,Pxg1)
         call ssd(Px,gx2,Pxg2)
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
-! force implementation  !   
-
-!        if (Pxg1 > 0) then 
-!          Pxg1 = - Pxg1 
-!        end if 
-! 
-!        if (Pxg2 < 0) then 
-!          Pxg2 = - Pxg2 
-!        end if 
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
         Pyg1 = Py - gy1
         Pzg1 = Pz - gz1
@@ -795,6 +1518,40 @@ C**********************************************************************C
 
         end if   
 
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !           2D             !
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        
+        if (space == "SLAB") then 
+       
+          call ssd(Px,gx1,Pxg1)
+          call ssd(Px,gx2,Pxg2)
+  
+          call ssd(Py,gy1,Pyg1)
+          call ssd(Py,gy2,Pyg2)
+
+          Pzg1 = Pz - gz1
+          Pzg2 = Pz - gz2  
+  
+          end if   
+  
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !           3D             !
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        
+          if (space == "CRYSTAL") then 
+       
+            call ssd(Px,gx1,Pxg1)
+            call ssd(Px,gx2,Pxg2)
+    
+            call ssd(Py,gy1,Pyg1)
+            call ssd(Py,gy2,Pyg2)
+  
+            call ssd(Pz,gz1,Pzg1)
+            call ssd(Pz,gz2,Pzg2)
+    
+            end if   
+  
       else  
      
       Pxg1 = Px - gx1  
@@ -854,8 +1611,6 @@ C----------------------------------------------------------------------C
       REAL*8, intent(in)  :: zp1 , zp2
 
 ! local !
-      REAL*8              :: npx 
-
       integer             :: sign 
 
 ! output !
@@ -878,52 +1633,270 @@ C**********************************************************************C
 
 
       if (toura) then 
-  
+ 
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !            1D            !
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
         if (space == "POLYMER") then
-            
-          call SSD(xp1,xp2,Xpp) 
-        
-          if ((xp1 == xp2))   Xpp = 0.d0 
 
-          if (center1  .and. (.not. center2)) then 
-            Xpp = - Xpp
-          end if 
+       if (xp1 > xp2) then 
+         Xpp = xp1 - xp2
+         Xpp = - Xpp 
+         if (abs(Xpp) > 0.5d0*Lx) then 
+           Xpp = Lx - abs(Xpp)
+         end if 
+       end if 
 
-          if (center2  .and. (.not. center1)) then 
-            Xpp = - Xpp
-          end if 
-
-
-      if   (abs(xp1-xp2) > 0.5d0*Lx - 0.0000000001 ) then 
-        if (abs(xp1-xp2) < 0.5d0*Lx + 0.0000000001 ) then 
-          if (xp1 > xp2) then 
-          Xpp =   0.5d0*Lx 
-          else 
-          Xpp = - 0.5d0*lx
-          end if 
-          if (center1 .and. xp1 < xp2 .and. (.not. center2)) then 
-            Xpp = - Xpp 
-          end if 
-          if (center2 .and. xp2 < xp1 .and. (.not. center1)) then 
+        if (xp2 > xp1) then 
+          Xpp = xp1 - xp2
+          Xpp = - Xpp 
+          if (abs(Xpp) > 0.5d0*Lx) then 
+            Xpp = Lx - abs(Xpp)
             Xpp = - Xpp 
           end if 
         end if 
-      end if 
 
-      if (Xpp >= 0) then 
-        sign =    1.d0 
-      else 
+        if   (abs(xp1-xp2) > 0.5d0*Lx - 0.00000000001 ) then 
+          if (abs(xp1-xp2) < 0.5d0*Lx + 0.00000000001 ) then 
+            if (xp1 > xp2) then 
+              Xpp = - 0.5d0*Lx 
+            else 
+              Xpp =   0.5d0*Lx
+            end if 
+          end if 
+        end if 
+
+      if (Xpp >  0) then 
         sign = -  1.d0 
+      else  
+        sign =    1.d0 
       end if       
+
+      if ((xp1 == xp2))   Xpp = 0.d0
+
+      Xpp = sign*abs(Xpp)
 
       Xpp = sign*(ax**(-2.d0)*(2.d0-2.d0*cos(ax*Xpp)))**(0.5d0)
 
-
-          Ypp  = yp1 - yp2
-          Zpp  = zp1 - zp2
+        Ypp  = yp1 - yp2
+        Zpp  = zp1 - zp2
   
         end if 
-  
+ 
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !            2D            !
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        
+        if (space == "SLAB") then
+
+          if (xp1 > xp2) then 
+            Xpp = xp1 - xp2
+            Xpp = - Xpp 
+            if (abs(Xpp) > 0.5d0*Lx) then 
+              Xpp = Lx - abs(Xpp)
+            end if 
+          end if 
+   
+           if (xp2 > xp1) then 
+             Xpp = xp1 - xp2
+             Xpp = - Xpp 
+             if (abs(Xpp) > 0.5d0*Lx) then 
+               Xpp = Lx - abs(Xpp)
+               Xpp = - Xpp 
+             end if 
+           end if 
+   
+           if   (abs(xp1-xp2) > 0.5d0*Lx - 0.00000000001 ) then 
+             if (abs(xp1-xp2) < 0.5d0*Lx + 0.00000000001 ) then 
+               if (xp1 > xp2) then 
+                 Xpp = - 0.5d0*Lx 
+               else 
+                 Xpp =   0.5d0*Lx
+               end if 
+             end if 
+           end if 
+   
+         if (Xpp >  0) then 
+           sign = -  1.d0 
+         else  
+           sign =    1.d0 
+         end if       
+   
+        if ((xp1 == xp2))   Xpp = 0.d0
+   
+         Xpp = sign*abs(Xpp)
+   
+         Xpp = sign*(ax**(-2.d0)*(2.d0-2.d0*cos(ax*Xpp)))**(0.5d0)
+
+        if (yp1 > yp2) then 
+          Ypp = yp1 - yp2
+          Ypp = - Ypp 
+          if (abs(Ypp) > 0.5d0*Ly) then 
+            Ypp = Ly - abs(Ypp)
+          end if 
+        end if 
+ 
+         if (yp2 > yp1) then 
+           Ypp = yp1 - yp2
+           Ypp = - Ypp 
+           if (abs(Ypp) > 0.5d0*Ly) then 
+             Ypp = Ly - abs(Ypp)
+             Ypp = - Ypp 
+           end if 
+         end if 
+ 
+         if   (abs(yp1-yp2) > 0.5d0*Ly - 0.00000000001 ) then 
+           if (abs(yp1-yp2) < 0.5d0*Ly + 0.00000000001 ) then 
+             if (yp1 > yp2) then 
+               Ypp = - 0.5d0*Ly 
+             else 
+               Ypp =   0.5d0*Ly
+             end if 
+           end if 
+         end if 
+ 
+       if (Ypp >  0) then 
+         sign = -  1.d0 
+       else  
+         sign =    1.d0 
+       end if       
+ 
+      if ((yp1 == yp2))   Ypp = 0.d0
+ 
+       Ypp = sign*abs(Ypp)
+ 
+       Ypp = sign*(ay**(-2.d0)*(2.d0-2.d0*cos(ay*Ypp)))**(0.5d0)
+
+       Zpp  = zp1 - zp2
+     
+      end if
+
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !            3D            !
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        
+      if (space == "CRYSTAL") then
+
+        if (xp1 > xp2) then 
+          Xpp = xp1 - xp2
+          Xpp = - Xpp 
+          if (abs(Xpp) > 0.5d0*Lx) then 
+            Xpp = Lx - abs(Xpp)
+          end if 
+        end if 
+ 
+        if (xp2 > xp1) then 
+          Xpp = xp1 - xp2
+          Xpp = - Xpp 
+          if (abs(Xpp) > 0.5d0*Lx) then 
+            Xpp = Lx - abs(Xpp)
+            Xpp = - Xpp 
+          end if 
+        end if 
+ 
+        if   (abs(xp1-xp2) > 0.5d0*Lx - 0.00000000001 ) then 
+          if (abs(xp1-xp2) < 0.5d0*Lx + 0.00000000001 ) then 
+            if (xp1 > xp2) then 
+              Xpp = - 0.5d0*Lx 
+            else 
+              Xpp =   0.5d0*Lx
+            end if 
+          end if 
+        end if 
+ 
+       if (Xpp >  0) then 
+         sign = -  1.d0 
+       else  
+         sign =    1.d0 
+       end if       
+ 
+      if ((xp1 == xp2))   Xpp = 0.d0
+ 
+       Xpp = sign*abs(Xpp)
+ 
+       Xpp = sign*(ax**(-2.d0)*(2.d0-2.d0*cos(ax*Xpp)))**(0.5d0)
+
+        if (yp1 > yp2) then 
+          Ypp = yp1 - yp2
+          Ypp = - Ypp 
+          if (abs(Ypp) > 0.5d0*Ly) then 
+            Ypp = Ly - abs(Ypp)
+          end if 
+        end if 
+
+         if (yp2 > yp1) then 
+           Ypp = yp1 - yp2
+           Ypp = - Ypp 
+           if (abs(Ypp) > 0.5d0*Ly) then 
+             Ypp = Ly - abs(Ypp)
+             Ypp = - Ypp 
+           end if 
+         end if 
+
+         if   (abs(yp1-yp2) > 0.5d0*Ly - 0.00000000001 ) then 
+           if (abs(yp1-yp2) < 0.5d0*Ly + 0.00000000001 ) then 
+             if (yp1 > yp2) then 
+               Ypp = - 0.5d0*Ly 
+             else 
+               Ypp =   0.5d0*Ly
+             end if 
+           end if 
+         end if 
+
+       if (Ypp >  0) then 
+         sign = -  1.d0 
+       else  
+         sign =    1.d0 
+       end if       
+
+      if ((yp1 == yp2))   Ypp = 0.d0
+
+       Ypp = sign*abs(Ypp)
+
+       Ypp = sign*(ay**(-2.d0)*(2.d0-2.d0*cos(ay*Ypp)))**(0.5d0)
+
+       if (zp1 > zp2) then 
+        Zpp = zp1 - zp2
+        Zpp = - Zpp 
+        if (abs(Zpp) > 0.5d0*Lz) then 
+          Zpp = Lz - abs(Zpp)
+        end if 
+      end if 
+
+       if (zp2 > zp1) then 
+         Zpp = zp1 - zp2
+         Zpp = - Zpp 
+         if (abs(Zpp) > 0.5d0*Lz) then 
+           Zpp = Lz - abs(Zpp)
+           Zpp = - Zpp 
+         end if 
+       end if 
+
+       if   (abs(zp1-zp2) > 0.5d0*Lz - 0.00000000001 ) then 
+         if (abs(zp1-zp2) < 0.5d0*Lz + 0.00000000001 ) then 
+           if (zp1 > zp2) then 
+             Zpp = - 0.5d0*Lz
+           else 
+             Zpp =   0.5d0*Lz
+           end if 
+         end if 
+       end if 
+
+       if (Zpp >  0) then 
+         sign = -  1.d0 
+       else  
+         sign =    1.d0 
+       end if       
+
+      if ((zp1 == zp2))   Zpp = 0.d0
+
+       Zpp = sign*abs(Zpp)
+
+       Zpp = sign*(az**(-2.d0)*(2.d0-2.d0*cos(az*Zpp)))**(0.5d0)
+     
+      end if
+
       else 
   
       Xpp  = xp1 - xp2
@@ -992,18 +1965,42 @@ C
 
       if (toura) then 
 
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !            1D            !
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
         if (space == "POLYMER") then
         
-        
           X = (ax**(-2.d0)*(2.d0 - 2.d0*cos(ax*(x1-x2))))**(0.5d0)
-
-
-!          X = x1 - x2
           Y = y1 - y2
           Z = z1 - z2
 
         end if
+
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !            2D            !
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!
         
+        if (space == "SLAB") then
+        
+          X = (ax**(-2.d0)*(2.d0 - 2.d0*cos(ax*(x1-x2))))**(0.5d0)
+          Y = (ay**(-2.d0)*(2.d0 - 2.d0*cos(ay*(y1-y2))))**(0.5d0)
+          Z = z1 - z2
+
+        end if
+
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !            3D            !
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        
+        if (space == "CRYSTAL") then
+        
+          X = (ax**(-2.d0)*(2.d0 - 2.d0*cos(ax*(x1-x2))))**(0.5d0)
+          Y = (ay**(-2.d0)*(2.d0 - 2.d0*cos(ay*(y1-y2))))**(0.5d0)
+          Z = (az**(-2.d0)*(2.d0 - 2.d0*cos(az*(z1-z2))))**(0.5d0)
+
+        end if
+
       else 
               
       X = x1 - x2
@@ -1080,5 +2077,4 @@ C----------------------------------------------------------------------C
 
 C----------------------------------------------------------------------C
 C----------------------------------------------------------------------C
-C----------------------------------------------------------------------C      
-
+C----------------------------------------------------------------------C

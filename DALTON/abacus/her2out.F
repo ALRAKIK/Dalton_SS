@@ -272,8 +272,8 @@ C
          NBUF = NBUF + 1
 C
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!     turin_irsamc    6 
-         IF (IPRINT .GE. 0) THEN
+!     turin_irsamc    6  D16.8
+!         IF (IPRINT .GE. 6) THEN
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             WRITE (LUPRI,'(2X,A,I5,A/)')
      &         'Type 0 integral buffer #',NBUF,' has been written.'
@@ -293,10 +293,10 @@ C
                   K = IAND(ISHFT(KL, -NBITS),IBIT1)
                   L = IAND(      KL,         IBIT1)
                END IF
-               WRITE (LUPRI,'(10X,A,2X,4I4,5X,1P,D16.8)')
+               WRITE (LUPRI,'(10X,A,2X,4I4,5X,1P,F24.12)')
      &                      ' ## ', I, J, K, L, BUF(INT)
   100       CONTINUE
-         END IF
+!         END IF
          ICOUNT = 0
       ELSE ! finished
          ICOUNT4 = ICOUNT
@@ -311,7 +311,7 @@ C
          END IF
          CALL GPCLOSE(LUINTA,'KEEP')
 C
-         IF (IPRINT .GE. 6) THEN
+!         IF (IPRINT .GE. 6) THEN
             IF (ICOUNT .GT. 0) THEN
                WRITE (LUPRI,'(2X,A,I3,A,I5,A/)') 'Type',ITYPE,
      &            ' integral buffer #',NBUF+1,' has been written.'
@@ -336,7 +336,7 @@ C
      &                         ' ## ', I, J, K, L, BUF(INT)
   200          CONTINUE
             END IF
-         END IF
+!         END IF
 C
 C        Statistics
 C

@@ -596,10 +596,6 @@ C
          call DISTARCPP(PX,SGN34X*COOR34(IOD34,1),PQXI,
      &                  PY,SGN34Y*COOR34(IOD34,2),PQYI,
      &                  PZ,SGN34Z*COOR34(IOD34,3),PQZI,center1,center2)
-
-!         write(Lupri,'(f12.6,a,L,f12.6,a,L)')
-!     &    PX ,'  ', bary_1(IOD12) ,
-!     &    SGN34X*COOR34(IOD34,1) , '  ' ,bary_2(IOD34) 
              
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!                             
                   PQX(IODS) = PQXI

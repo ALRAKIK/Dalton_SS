@@ -265,12 +265,12 @@ C
             EXPABQ = EXPA*EXPB*DISTAB*EXPPI
 ********************************************************            
 ! turin_irsamc !            
-         IF (EXPABQ.GT.TOLOG) GO TO 200
+!         IF (EXPABQ.GT.TOLOG) GO TO 200
 ********************************************************
             SAAB = CONTA*CONTB*EXP(-EXPABQ)
             ASAAB = ABS(SAAB)
 ********************************************************            
-         IF (ASAAB.LT.TOLS) GO TO 200
+!         IF (ASAAB.LT.TOLS) GO TO 200
 ********************************************************
             SAAB13 = SIGN(ASAAB**THIRD,SAAB)
 C
@@ -287,10 +287,18 @@ C
 !            CORPY  = EXPAPI*CORAY + EXPBPI*CORBY
 !            CORPZ  = EXPAPI*CORAZ + EXPBPI*CORBZ
 
+
+!            print*, IPRIMA  , EXPA , NUCA , NUCB 
+!            print*, EXPA   , EXPB
+!            print*, JSTA   , JSTB
+
+
       call  BarCENT(EXPAPI,EXPBPI,EXPA,EXPB
      &                   ,CORAX,CORBX,CORPX
      &                   ,CORAY,CORBY,CORPY
-     &                   ,CORAZ,CORBZ,CORPZ)
+     &                   ,CORAZ,CORBZ,CORPZ 
+     &                   ,NUCA ,NUCB)
+
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 C

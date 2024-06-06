@@ -606,11 +606,16 @@ C        CALL JACO_THR(F,V,NB,NMAX,NROWV,THR_JACO)
          END IF
 
 !!!!!! new          
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!     turin_irsamc                   
          WRITE (LUPRI,'(/A,I5/)') ' The overlap eigenvalues'
          WRITE (LUPRI,'(/A,I5/)') ''
          WRITE (LUPRI,'(1P,5D15.5)') (SCRA(KS1T-1+I),I=1,NORBI)
+!         CALL HEADER ('The Last eign value',-1)
+         WRITE (LUPRI,'(a,1P,5D15.5)') 'The Last eigen value'
+     &    ,(SCRA(KS1T-1+I),I=NORBI,NORBI)
 !!!!!! new
-
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!           
 C
 C Delete orbitals with small ( THROVL ) eigenvalues
