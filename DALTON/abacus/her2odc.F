@@ -660,7 +660,7 @@ C
                   FAC12I = CCF12*EXP(-EXPQ*DIST12)
                   ABSFAC = ABS(FAC12I)
 C                 screening test:
-!                  IF (ABSFAC .GT. THRSH) THEN
+                  IF (ABSFAC .GT. THRSH) THEN
                         NPRI12(NSYMOP) = NPRI12(NSYMOP) + 1
                         NUCT12(NSYMOP) = NUCT12(NSYMOP) + 1
                         SRFMAX = MAX(SRFMAX,ABSFAC)
@@ -712,7 +712,7 @@ C                 screening test:
      &            COOR12(IPRIM,2,3,NSYMOP),COOR12(IPRIM,3,3,NSYMOP))
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!                        
-!                  END IF
+                  END IF
   401          CONTINUE
   301       CONTINUE
 C NECgh980908 Here comes the original code for MAXOPR .GT. 0
