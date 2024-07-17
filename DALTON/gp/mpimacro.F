@@ -53,6 +53,7 @@ C
 C
       CALL MPI_COMM_RANK(MPI_COMM_WORLD,value_mpi,ierr_mpi)
       MYNUM = value_mpi
+
 #if defined(CRI_MEMTRACE)
       IF (MYNUM .LE. 1) CALL MEMTRACE(1)
 #else

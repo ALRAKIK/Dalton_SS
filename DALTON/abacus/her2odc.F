@@ -36,6 +36,7 @@ C
      &          NUCT12(*), NORT12(*), NIND12(*), NPNT12(*), IXP12(*),
      &          WORK(LWORK)
 #include "twosta.h"
+
       IF (TKTIME) TIMSTR = SECOND()
       IF (GEN12) THEN
          KPOINT = 1
@@ -535,6 +536,8 @@ C  /* Deck odcseg */
 C
 C     TUH 84
 C
+            use turin_irsamc
+
 #include "implicit.h"
 #include "priunit.h"
 #include "aovec.h"
@@ -547,6 +550,7 @@ C
 #include "primit.h"
 #include "symmet.h"
 #include "expopt.h"
+
       COMMON /MAXOLD/ SRFMAX,OLDMAX
       DIMENSION NPCO1(NSET1,2), NPCO2(NSET2,2), JSTR1(*), JSTR2(*),
      &          COOR12(NUC1*NUC2,3,3,NODC12),
@@ -556,7 +560,6 @@ C
      &          NIND12(NORB1*NORB2,2), NORT12(8),
      &          IXP12(NUC1*NUC2,2,NODC12)
 C
-
       XAND(I) = PT(IAND(ISYMAX(1,1),I))
       YAND(I) = PT(IAND(ISYMAX(2,1),I))
       ZAND(I) = PT(IAND(ISYMAX(3,1),I))
@@ -565,6 +568,7 @@ C     ***********************************************
 C     ***** Set up overlap distribution vectors *****
 C     ***********************************************
 C
+
       IF (ITYPE .EQ. 12) THEN
          IELCTR = 1
          SRFMAX = D0
@@ -649,10 +653,10 @@ C
 !         DIFX = CRX1 - CRX2
 !         DIFY = CRY1 - CRY2
 !         DIFZ = CRZ1 - CRZ2
-!         DIST12 = DIFX*DIFX + DIFY*DIFY + DIFZ*DIFZ
+!         DIST12 = DIFX*DIFX + DIFY*DIFY + DIFZ*DIFZ 
 
-      CALL   DISTANA2(CRX1,CRX2,DIFX,CRY1,CRY2,
-     &                DIFY,CRZ1,CRZ2,DIFZ,DIST12)
+      CALL   DISTANA2(CRX1,CRX2,CRY1,CRY2,
+     &                CRZ1,CRZ2,DIST12)
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!                  
 

@@ -60,6 +60,7 @@ C     AO_DIRECT_in = .TRUE.   Direct calculation using hermit.
 C                    .FALSE.  Read integrals from AOTWOINT/AOSR2INT
 Cholesky       Overridden by the CHOINT flag
 C
+
 #include "implicit.h"
       LOGICAL   AO_DIRECT_in, AO_DIRECT, DOERG, DOATR, LSRHYBR
       LOGICAL   DO_SPINDNS, SRDFT_SPINDNS_SAVE, TRIPLET_local

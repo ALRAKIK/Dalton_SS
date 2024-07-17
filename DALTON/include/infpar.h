@@ -51,7 +51,7 @@ extern struct common_infpar {
       PARAMETER ( MAXNOD = 9999, NPARI = 7 )
       INTEGER IPRPAR, NTASK, NDEGDI, MASTER, MYNUM, MYTID
       INTEGER NODTOT, NFMAT, MTOTTK
-      LOGICAL PARHER, PARIO, INFPAR_DEBUG, TIMING, SLAVE, rma_model
+      LOGICAL PARHER, PARIO, INFPAR_DEBUG, TIMING, SLAVE, rma_model 
       CHARACTER*20   NODNAM(0:MAXNOD), MYNAME
       COMMON /DALTONINFPAR/                                              &
      &        IPRPAR, NTASK, NDEGDI, MASTER, MYNUM, MYTID                &

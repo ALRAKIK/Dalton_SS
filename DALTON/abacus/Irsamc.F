@@ -3,11 +3,14 @@ C----------------------------------------------------------------------C
 C----------------------------------------------------------------------C
 
       module turin_irsamc
+
+      implicit none 
       
       ! logical !
 
-      LOGICAL    toura , same_center_X , same_center_Y 
-      LOGICAL    same_center_Z
+      LOGICAL    toura 
+      
+      LOGICAL    same_center_X , same_center_Y ,same_center_Z
       
       ! character ! 
       
@@ -25,14 +28,6 @@ C----------------------------------------------------------------------C
       ! matrix real ! 
 
       REAL*8,allocatable   ::  over(:,:)
-
-      ! two electron integral ! 
-
-      LOGICAL              :: first_electron , second_electron 
-      LOGICAL              :: bary_1(500000) , bary_2(500000)
-      LOGICAL              :: center1 , center2 
-      INTEGER              :: iii = 0 , iij = 0 
-
 
       end module turin_irsamc
       
@@ -59,6 +54,7 @@ C
         implicit none 
   
 #include "priunit.h"
+!#include "turin.h"
 
 ! ---------------------------------------------------------------------- !
 
@@ -194,6 +190,7 @@ C ---------------------------------------------------------------------- C
       implicit none
       
 #include "priunit.h"
+#include "turin.h"
 
 ! ----------------------------------------------------------------------!
       
@@ -576,7 +573,8 @@ C ---------------------------------------------------------------------- C
       implicit none
 
 #include "pi.h"
-#include "priunit.h"      
+#include "priunit.h"
+!#include "turin.h"      
 
 ! ---------------------------------------------------------------------- !
 
@@ -746,6 +744,7 @@ C----------------------------------------------------------------------C
 
 #include "pi.h"
 #include "priunit.h"
+!#include "turin.h"
 
 !----------------------------------------------------------------------!
 
@@ -806,7 +805,7 @@ C**********************************************************************C
 
           Xap = sign*(ax**(-2.d0)*(2.d0-2.d0*cos(ax*Xap)))**(0.5d0)
 
-          if (same_center_X) Xap = 0.d0 
+!          if (same_center_X .and. abs(xa-xp) == 0.5d0*Lx) Xap = 0.d0 
                 
           Yap = ya - yp 
           Zap = za - zp
@@ -955,7 +954,7 @@ C
 
 !     it is realted to the overlap matrix from type S 
 
-      SUBROUTINE DISTANA2(x1,x2,X,y1,y2,Y,z1,z2,Z,DIST)
+      SUBROUTINE DISTANA2(x1,x2,y1,y2,z1,z2,DIST)
       
       use turin_irsamc
   
@@ -963,6 +962,7 @@ C
   
 #include "pi.h"
 #include "priunit.h"
+!#include "turin.h"
 
 !----------------------------------------------------------------------!
 
@@ -1096,6 +1096,7 @@ C----------------------------------------------------------------------C
       implicit none
 
 #include "priunit.h"
+!#include "turin.h"
       
 !----------------------------------------------------------------------!
 
@@ -1168,23 +1169,6 @@ C**********************************************************************C
             end if 
           end if 
 
-!          if (first_electron) then 
-!            iii = iii + 1 
-!            if (abs(gx1-gx2) > 0.5d0*Lx) then 
-!              bary_1(iii) = .TRUE.
-!            else 
-!              bary_1(iii) = .FALSE.
-!            end if 
-!          end if 
-
-!          if (second_electron) then 
-!            iij = iij + 1
-!            if (abs(gx1-gx2) > 0.5d0*Lx) then 
-!              bary_2(iij) = .TRUE.
-!            else 
-!              bary_2(iij) = .FALSE.
-!            end if 
-!          end if 
 
           if (Xp >= Lx) then 
             Xp = Xp  - Lx 
@@ -1459,7 +1443,8 @@ C----------------------------------------------------------------------C
       implicit none
 
 #include "pi.h"
-#include "priunit.h"      
+#include "priunit.h"
+!#include "turin.h"      
 
 !----------------------------------------------------------------------!
 
@@ -1601,6 +1586,7 @@ C----------------------------------------------------------------------C
 
 #include "pi.h"
 #include "priunit.h"
+!#include "turin.h"
 
 !----------------------------------------------------------------------!
 
@@ -1950,6 +1936,7 @@ C
 
 #include "pi.h"
 #include "priunit.h"
+#include "turin.h"
 
       REAL*8, intent(in)  :: x1 , x2         ! the coordinates on X
       REAL*8, intent(in)  :: y1 , y2         ! the coordinates on Y
@@ -2011,6 +1998,7 @@ C
     
       D = sqrt(X*X+Y*Y+Z*Z)
 
+!          write(LUPRI,'(a,L)') "toura  " , toura 
 !          write(LUPRI,'(a,3f12.6)') 'x1,x2,X   :', x1,x2 , X 
 !          write(LUPRI,'(a,3f12.6)') 'y1,y2,Y   :', y1,y2 , Y 
 !          write(LUPRI,'(a,3f12.6)') 'D         :', D  
@@ -2033,8 +2021,10 @@ C
 
         use turin_irsamc
       
-        implicit none 
-      
+        implicit none
+
+!#include "turin.h"
+        
         REAL*8, intent(in)  :: x1 , x2         ! the coordinates on X 
       
         REAL*8, intent(out) :: X               ! the distance
@@ -2074,6 +2064,54 @@ C----------------------------------------------------------------------C
         ! Truncate the number
         number = int(number * factor,8) / factor
       end subroutine truncate
+
+C----------------------------------------------------------------------C
+C----------------------------------------------------------------------C
+C----------------------------------------------------------------------C
+
+      subroutine para_torus(core)
+
+        use turin_irsamc
+
+        implicit none
+
+        INTEGER, intent(in) :: core 
+
+        ! local ! 
+
+        LOGICAL        topo , POLY 
+        CHARACTER*8    pspace 
+        REAL*8         pax , pay , paz 
+        REAL*8         pLx , pLy , pLz 
+
+!#include "turin.h"
+      
+!        if (core == 0) then 
+!          print*, "i am the core and toura " ,core,toura,ax 
+!          if (toura) then 
+!            topo   = toura
+!            pspace = space 
+!            if (space == "POLYMER") then 
+!              POLY = .TRUE. 
+!            end if 
+!          end if 
+!          print*, "i am the core and toura " ,core,topo, ax
+!        end if 
+
+!        if (core .ne. 0) then 
+!          print*, "i am the core and toura " ,core,toura,ax
+!          print*, ""
+!            toura = topo 
+!            space = pspace 
+!            if (POLY) then 
+!              space = "POLYMER"
+!            end if 
+!            space = "POLYMER"
+!          print*, "i am the core and toura " ,core,toura,ax
+!          print*, "----------"
+!        end if
+
+      end subroutine para_torus 
 
 C----------------------------------------------------------------------C
 C----------------------------------------------------------------------C

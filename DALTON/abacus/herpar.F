@@ -28,6 +28,7 @@ C  /* Deck her_pardrv */
      &                      DINTSKP,RELCALC,GENCTR)
 
 C  Hermit parallel driver.  Only called from PARDRV (checked Nov. 2016).
+            use turin_irsamc
 #include "implicit.h"
 #include "priunit.h"
 #include "mxcent.h"
@@ -59,7 +60,7 @@ C
 #include "nuclei.h"
 #include "inforb.h"
 #include "memint.h"
-C
+C      
       CALL QENTER('HER_PARDRV')
       IF (IPRINT .GT. 2) CALL TITLER('Output from HER_PARDRV','*',103)
 C
@@ -238,6 +239,7 @@ C
       use memory_parallel
       use parallel_communication_models_mpi
       use rma_windows
+      use turin_irsamc
 
 #ifdef VAR_MPI
 #ifdef USE_MPI_MOD_F90
@@ -294,6 +296,7 @@ C
       INTEGER, SAVE      :: NPOS(0:MAXTSK+1)
       LOGICAL, SAVE      :: FIRST = .TRUE.
 C
+      
       CALL QENTER('HER_PARDRV_1')
       IF (IPRINT .GT. 4) CALL TITLER('Output from HER_PARDRV_1','*',103)
 C
@@ -568,7 +571,8 @@ C  /* Deck her_sdinit */
 !     module dependencies
       use parallel_communication_models_mpi
       use rma_windows
-
+      use turin_irsamc
+      
 #ifdef VAR_MPI
 #ifdef USE_MPI_MOD_F90
       use mpi
@@ -641,6 +645,8 @@ Cef end
          CALL TITLER('Output from HER_SDINIT','*',103)
          WRITE(LUPRI,'(/A,I5)') 'Parallel type (ITYPE) is',ITYPE
       END IF
+
+      
 C
 C     Calculate the number of Fock matrices that will be
 C     returned from slaves to master.
@@ -699,7 +705,11 @@ C
       CALL MPIXBCAST(SRINTS,1,'LOGICAL',MASTER)
       CALL MPIXBCAST(ERFEXP(0),3,'LOGICAL',MASTER)
       CALL MPIXBCAST(CHIVAL,1,'DOUBLE',MASTER)
-      CALL MPIXBCAST(EXPGRA,1,'LOGICAL',MASTER)
+      CALL MPIXBCAST(EXPGRA,1,'LOGICAL',MASTER)   
+!      print*, toura , "bla1"   
+!      CALL MPIXBCAST(toura,1,'LOGICAL',MASTER)
+!      print*, toura , "bla2"
+
 C
 Cef begin
       IF (AOSAVE .AND. NEWGEO .AND. (.NOT. FIRST)) THEN
@@ -896,6 +906,11 @@ C
       CALL MPIXBCAST(ERFEXP(0),3,'LOGICAL',MASTER)! gnrinf.h
       CALL MPIXBCAST(CHIVAL,1,'DOUBLE', MASTER)! gnrinf.h
       CALL MPIXBCAST(EXPGRA,1,'LOGICAL',MASTER)! expopt.h
+
+! =========================================================== !      
+!      CALL MPIXBCAST(toura,1,'LOGICAL',MASTER)
+! =========================================================== !
+
 C
 ! hjaaj Nov 2016: always send basis set information
          IF (IPRINT .GT. 3) THEN
@@ -1354,6 +1369,11 @@ C     This is a slave in a parallel run; check for programming error
 !     Receive initialization from master - 1 - common block information
 !     =================================================================
 !
+
+! ======================================================= ! 
+!                        turin irsamc                     ! 
+! ======================================================= !
+
       CALL HER_RVINIT(WORK(1),KFREE,LFREE,
      &                NDMAT,ISYMDM,IFCTYP,ITYPE,
      &                IATOM,MAXDIF,NODV,NOPV,NOCONT,
@@ -1643,6 +1663,10 @@ C
       integer(kind=MPI_INTEGER_KIND) :: i_MPI, j_MPI, k_MPI, l_MPI, ierr
 #endif
 
+! ================ !
+#include "turin.h"
+! ================ !
+
       IF (IPRINT .GT. 2) THEN
          CALL TITLER('Output from HER_RVINIT','*',103)
          WRITE(LUPRI,*) 'Set Common blocks is ',set_cb_blocks
@@ -1922,6 +1946,7 @@ C     Copied from TWOLOP and rewritten by Paal Dahle Nov.1994
       use parallel_communication_models_mpi
       use pelib_interface, only: use_pelib
 C
+
 #include "implicit.h"
 #include "priunit.h"
 #include "maxaqn.h"
@@ -2315,7 +2340,7 @@ c              IPRINT = 0
                IPRINT = JPRINT
 C
 C     Note DUMMY should be HESSEE, K.Ruud-96
-C
+C           
                CALL TWOODS(FMAT,DMAT,NDMAT,GMAT,HESSEE,WORK,LWORK,
      &                 UNDIFF,PERTUR,LONDON,SPNORB,DIA2SO,ZFS2EL,
      &                 EXPECT,SUSCEP,DDFOCK,DIRFCK,SOFOCK,DISTRI,

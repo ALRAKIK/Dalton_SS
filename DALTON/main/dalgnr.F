@@ -745,6 +745,13 @@ C
 
       real(8), allocatable :: work(:)
 
+! ===================================================== !      
+!      print*, ""
+!      print*, "I am dalgnr (750) on the master core "
+!      print*, ""
+! ===================================================== !
+
+
       CALL QENTER('DALTON')
       CALL GETTIM(CSTR,WSTR)
 C
@@ -1119,6 +1126,12 @@ C
       ELSE
 C     ... not OPTWLK and not OPTNEW, i.e. not geometry optimization
          NEWGEO = .TRUE.
+
+!! =============================================================== ! 
+!         print*, "I am dalgnr (1133) and everything still on one core"
+!         print*, "here is the new geometry to optimize"
+!! =============================================================== !
+
 Chj      IF (RNHERM .OR. TESTIN) CALL EXEHER(WORK,LMWORK,WRKDLM)
          CALL EXEHER(WORK(0),LMWORK,WRKDLM)
 Chj always call EXEHER to read MOLECULE.INP (not read in abactl any more)
@@ -1252,6 +1265,8 @@ C
       CALL QEXIT('DALTON')
       RETURN
       END
+
+
 C  /* Deck gnrlin */
       SUBROUTINE DALTON_GNRLINP
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1276,6 +1291,10 @@ C
 #include "maxorb.h"
 #include "priunit.h"
 #include "gnrinf.h"
+! =================== !
+! turin_irsamc
+#include "turin.h"
+! =================== !
 C
 #include "molde.h"
 #include "abainf.h"
@@ -1300,7 +1319,11 @@ Cholesky
 C
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! turin_irsamc
-      
+
+#if defined (VAR_MPI)
+      INCLUDE 'mpif.h'
+#endif 
+
 #include "pi.h"
       
 !      PARAMETER (NDIR = 15, NTABLE = 37, D0 = 0.D0)
@@ -1755,9 +1778,8 @@ C
 ! turin_irsamc 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-         
  138     CONTINUE  ! .NOATMD       
-            toura = 1
+            toura = .TRUE.
               READ (LUCMD,*) Lx , Ly , Lz , ANGO , space 
               WRITE(*,'(a)') "NOTE:"
               WRITE(*,'(a)') ""
@@ -1791,7 +1813,7 @@ C
                 ax = 2*pi/Lx
                 ay = 2*pi/Ly
                 az = 2*pi/Lz
-         GOTO 100
+            GOTO 100
          
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!         
 C

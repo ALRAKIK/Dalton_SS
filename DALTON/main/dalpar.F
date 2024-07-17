@@ -74,6 +74,7 @@ C
       use pcm_parallel, only: j1ints_pcm
 #endif
       use parallel_models_mpi, only: lucita_models_enabled
+      use turin_irsamc
 
 #include "implicit.h"
 
@@ -85,6 +86,9 @@ C infpar.h: MASTER,MYNUM, PARHER
 C iprtyp.h: define parallel calculation types
 #include "iprtyp.h"
 #include "mpif.h"
+! ==================== ! 
+#include "turin.h"
+! ==================== !
 
 C gnrinf.h : PARCAL, DIRCAL
 #include "gnrinf.h"
@@ -93,7 +97,9 @@ C gnrinf.h : PARCAL, DIRCAL
       integer(4), parameter :: TEN_4 = 10
       character(len=24)     :: fdate
 
-! ======================================================
+! ====================================================== ! 
+!       print*, " I am dalpar.F (98)" , toura 
+! ====================================================== !
 
       CALL QENTER('DALTON_NODEDRIVER')
       CALL GETTIM(CSTR,WSTR)

@@ -332,6 +332,8 @@ C
 C     Initialize /CBIREA/, control variables in ecpinf.h,
 C     and parts of qm3.h
 C
+         use turin_irsamc
+
 #include "implicit.h"
 #include "maxorb.h"
 #include "mxcent.h"
@@ -345,6 +347,10 @@ C
 #include "qm3.h"
 #include "r12int.h"
 #include "nuclei.h"
+! =============== ! 
+!#include "turin.h"
+!#include "pi.h"
+! =============== !
 C
       LOGICAL FIRST_CALL
       SAVE    FIRST_CALL
@@ -362,6 +368,25 @@ C     ccom.h:
 C
       THRS   = 1.0D-12 ! default integral accuracy
       SPHNRM = .TRUE.  ! basis functions normalized, also for d, f, ...
+
+! ================================================================ !
+      
+!      print*, "I am herrdn and this is toura" , toura  , mynum 
+
+!      if (mynum == 0) then
+!         call para_torus(mynum)
+!      end if 
+!
+!      if (mynum .ne. 0) then 
+!         call para_torus(mynum)
+!         toura = .true. 
+!         space = "polymer"
+!         ax = 
+!         LX = 
+!      end if 
+
+! ================================================================ !
+
 C
 C     cbirea.h:
 C

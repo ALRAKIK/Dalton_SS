@@ -397,6 +397,7 @@ C  /* Deck gabdr1 */
      &               NUCSAB,JSTRA,JSTRB,NINDAB,NPNTAB,NREDAB,
      &               COORCD,EXPCD,FACCD,CONTC,CONTD,NPCOC,NPCOD,
      &               NUCSCD,JSTRC,JSTRD,NINDCD,NPNTCD,NREDCD)
+            use turin_irsamc 
 #include "implicit.h"
 #include "priunit.h"
 #include "maxaqn.h"

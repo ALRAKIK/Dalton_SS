@@ -590,9 +590,6 @@ C
 !                PQYI = PY - SGN34Y*COOR34(IOD34,2)
 !                PQZI = PZ - SGN34Z*COOR34(IOD34,3)
 
-         center1 = bary_1(IOD12)
-         center2 = bary_2(IOD34)
-
          call DISTARCPP(PX,SGN34X*COOR34(IOD34,1),PQXI,
      &                  PY,SGN34Y*COOR34(IOD34,2),PQYI,
      &                  PZ,SGN34Z*COOR34(IOD34,3),PQZI,center1,center2)

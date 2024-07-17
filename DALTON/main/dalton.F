@@ -34,6 +34,7 @@ C=========================================================================
 #endif
 C
       use parallel_models_mpi
+      use turin_irsamc
 C
 #include "implicit.h"
 #include "dummy.h"
@@ -60,6 +61,11 @@ C
 C defined parallel calculation types  
 #include "iprtyp.h"
 
+! ======================= ! 
+! turin_irsamc 
+#include "turin.h"
+! ======================= !
+
 !     this is to echo input files to the output
       character(100)     :: line
       logical            :: file_exists, file_open
@@ -78,6 +84,18 @@ C Start MPI, if parallel, in MPIXINIT; define MYNUM, MASTER, NODTOT
 C If not MPI, MPIXINIT defines: MYNUM  = 0; MASTER = 0; NODTOT = 0
 C
       CALL MPIXINIT
+
+! ===================================================================== !      
+      
+! ===================================================================== !
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!     so here if i try to see MYNUM it should give me the number of cores
+
+!      print*,"The Total number of cores :",NODTOT," and I am " , MYNUM 
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
       call parallel_models_initialize_mpi()
 
@@ -186,6 +204,10 @@ C     ... GPOPEN will change name from DALTON.OUT to $WRKDIR/$OUTFIL
 C         for Master if OUTFIL is an environment variable;
 C         for slaves the name will be changed to
 C         "DALTON.OUT.n<slave no>" in GPOPEN
+
+! ===================================================================== !
+                  !     here is the master core ! 
+! ===================================================================== !
 
       IF (MYNUM.EQ.MASTER) THEN
       CALL GPOPEN(LUNDPF,'DALTON.PROP','NEW',' ','FORMATTED',
@@ -573,7 +595,29 @@ C           structure of BASDIR: 'dir1:dir2:dir3'
 
 C        Read general input for Dalton
 C
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+!      print*,""  
+!      print*,"I am the master core before reading and my index is ",MYNUM  
+!      print*,""
+!      print*,"I am the value of toura", toura , Lx , space
+!      print*,""        
+
+!  here everything in on the master core  so reading the input file is on the master core only 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!    
+
          CALL DALTON_GNRLINP
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!         
+!      print*,"I am the master core after reading and my index is ",MYNUM
+!      print*,""
+!      print*,"I am the value of toura", toura , Lx , space
+!      print*,""        
+
+!      CALL MPI_BCAST(toura,1,MPI_LOGICAL,0,MPI_COMM_WORLD,ierr_mpi)
+      
+!      CAN'T BCAST FROM HERE 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!         
+
 
 #if defined (VAR_MPI)
          CALL RECVNAMES
@@ -581,6 +625,7 @@ C
          CALL MOLDEN_HEAD
 !
 !        call main driver routine
+
          call dalton_exedrv(lmwork,wrkdlm)
 
          CALL MOLDEN_TAIL
@@ -600,14 +645,27 @@ C
 C
 C     Send ending signal to slaves
 C
+
+! ===================================================================== !
+
+!         CALL MPI_BCAST(toura,1,MPI_LOGICAL,0,MPI_COMM_WORLD,ierr_mpi)
+!         CALL MPIXBCAST(toura,1,'LOGICAL',MYNUM) 
+      
+!         HERE YOU GO INTO INFINITE COMMUNICATION IF BCAST
+! ===================================================================== !
+
          IPRTYP = ENDING_SIGNAL
-         CALL MPIXBCAST(IPRTYP,1,'INTEGER',MYNUM)
+         CALL MPIXBCAST(IPRTYP,1,'INTEGER',MYNUM)       
 
          CALL GPCLOSE(LUCME,'KEEP')
          CALL GPCLOSE(LUNDPF,'KEEP')
          CALL GPCLOSE(LUNMPF,'KEEP')
          CALL GPCLOSE(LUPRI,'KEEP')
          CALL GPCLOSE(LUSTAT,'KEEP')
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!        here is para code
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ELSE
 C     ... I am a "slave" ... (MYNUM .ne. MASTER)
 C ahs only print if number of cores are less than 16
@@ -616,7 +674,8 @@ C ahs only print if number of cores are less than 16
 !           spaced evenly out among all slaves 1..NODTOT
 !        ITEST = (NODTOT-1)/15 + 1
 !        IF (MYNUM .EQ. 1 .OR. MOD(MYNUM,ITEST) .EQ. 0) THEN
-           CALL TITLER('DALTON - An electronic structure program',
+
+      CALL TITLER('DALTON - An electronic structure program',
      &               '*',111)
            WRITE(LUPRI,'(/A)') ' * Release: '//
      &     DALTON_VERSION
@@ -658,11 +717,13 @@ C           IF (IPRLOC .GT. 2) CALL PRPRPC(LUNDPF,1,DUMMY,NPRMI)
 C
 C     Send ending signal to slaves
 C
+
             FINISH = .TRUE.
             count_mpi = 1
             master_mpi = MASTER
             CALL MPI_BCAST(FINISH,count_mpi,my_MPI_LOGICAL,master_mpi,
      &           MPI_COMM_WORLD,err_mpi)
+     
             CALL GPCLOSE(LUCME,'KEEP')
             CALL GPCLOSE(LUNDPF,'KEEP')
             CALL GPCLOSE(LUNMPF,'KEEP')
@@ -671,11 +732,15 @@ C
             CALL GPCLOSE(LUPRI,'KEEP')
          ELSE
             CALL SENDNAME(MASTER,MYNUM)
-
 !           call main co-workers driver routine
             call dalton_nodedriver(lmwork,wrkdlm)
          END IF
       END IF
+ 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!     so here if i try to see MYNUM it should give me the number of cores
+!      print*, NODTOT , MYNUM , toura 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 #if defined(BUILD_GEN1INT)
 C...  added by Bin Gao, May 13, 2012
@@ -741,7 +806,8 @@ C...  terminates Gen1Int interface
       SUBROUTINE GETMMBAS(LMWORK,BASDIR,LBASDIR)
 
 !     module dependencies
-      use parallel_communication_models_mpi
+
+            use parallel_communication_models_mpi
 
 #include "implicit.h"
 #include "priunit.h"
@@ -883,6 +949,7 @@ C
  81     continue
         if (.not. file_open) CALL GPCLOSE(LUCMD,'KEEP')
       end if
+      
 !     end of keyword scan
 
 !     Transfer LMWORK_NODES and BASDIR to slaves

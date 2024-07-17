@@ -265,6 +265,8 @@ C  /* Deck twocal */
      &            RELCAL_in,GENCNT)
       use pelib_interface, only: pelib_ifc_do_twoints,
      &                           pelib_ifc_do_lao_twoints
+
+       use turin_irsamc
 #include "implicit.h"
 #include "priunit.h"
 #include "iratdef.h"
@@ -277,6 +279,7 @@ C  /* Deck twocal */
      &          IFCTYP(*), INDXAB(*), JSTRSH(*), NPRIMS(*), NCONTS(*),
      &          IORBSH(*),GABRAO(*),DMRAO(*), DMRSO(*),DINTSKP(*),
      &          WORK(LWORK)
+
 
 ! infpar.h : PARHER, SLAVE
 #include "infpar.h"
@@ -388,7 +391,7 @@ C
             IF (KLAST .GT. LWORK)
      &          CALL STOPIT('TWOCAL','PARLOP',KLAST,LWORK)
             LWRK = LWORK - KLAST + 1
-C
+C           
             CALL PARLOP(WORK(KLAST),LWRK,HESSEE,FMAT,DMAT,NDMAT,
      &           GMAT,MAXDER,EXPECT,SUSCEP,UNDIFF,DDFOCK,DIRFCK,
      &           SOFOCK,DISTRI,LONDON,SPNORB,DIA2SO,ZFS2EL,
@@ -1913,7 +1916,7 @@ C  /* Deck twoods */
      &                  NODV,NOPV,THRESH,IPRINT,FIRST,SQ12EL,INDHSQ,
      &                  IODDHR,INDHER,IFCTYP,ADISTR,JSTRSH,NPRIMS,
      &                  NCONTS,IORBSH,WRKBUF,ICEDIF,
-     &                  IFTHRS,DINTSKP,GABRAO,DMRAO,DMRSO,IREPDM,GENCNT)             
+     &                  IFTHRS,DINTSKP,GABRAO,DMRAO,DMRSO,IREPDM,GENCNT)       
 #include "implicit.h"
 #include "priunit.h"
 #include "aovec.h"
@@ -2195,22 +2198,13 @@ C     ========================================
 C
       TPRAB = .FALSE.
 C
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!     turin_irsamc 
-         if (toura) then 
-            if (space == "POLYMER") then 
-               iii             = 0 
-               first_electron  = 1 
-               second_electron = 0
-            end if 
-          end if 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!          
       CALL ODCVEC(COORAB,EXPAB,FACAB,CONTA,CONTB,JMAXA,JMAXB,NSETA,
      &            NSETB,NUCA,NUCB,NUCTAB,NORBA,NORBB,NPCOA,NPCOB,NUCSAB,
      &            JSTRA,JSTRB,TCONAB,TPRAB,GENAB,12,THRESH,MAXDER,
      &            MULA,MULB,NODCAB,NORTAB,NINDAB,NPNTAB,NREDAB,
      &            KHKTA,KHKTB,EXPECT,DIRFCK,WORK,LWORK,RPRIAB,RCNTAB,
      &            IXPAB,IPRINT)
+
 C
       IF (ISUM(NODCAB,NUCTAB,1) .EQ. 0 .AND. .NOT.LAST) RETURN
 C
@@ -2219,16 +2213,6 @@ C     =========================================
 C
       TPRCD = .FALSE.
 C     
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!     turin_irsamc 
-      if (toura) then 
-         if (space == "POLYMER") then 
-            iij             = 0 
-            first_electron  = 0 
-            second_electron = 1
-         end if 
-      end if 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       CALL ODCVEC(COORCD,EXPCD,FACCD,CONTC,CONTD,JMAXC,JMAXD,NSETC,
      &            NSETD,NUCC,NUCD,NUCTCD,NORBC,NORBD,NPCOC,NPCOD,NUCSCD,
      &            JSTRC,JSTRD,TCONCD,TPRCD,GENCD,34,THRESH,MAXDER,
