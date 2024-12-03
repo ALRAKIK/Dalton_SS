@@ -2039,19 +2039,25 @@ C----------------------------------------------------------------------C
 
         INTEGER, intent(in) :: core 
         ! local ! 
-      
+        
         if (core == 0) then 
           open(10,file='mpi',status='replace',action='write')
-          write(10, *) toura , space , ANGO
-          write(10, *) Lx , Ly , Lz  
+            write(10,*) toura , space , ANGO
+            write(10,*) Lx , Ly , Lz  
+            write(10,*) distance_type 
+            write(10,*) one1 , one2 , one3 ,one4
+            write(10,*) two1 , two2 , two3 ,two4
           close(10)
         end if 
         
         if (core .ne. 0) then 
           call sleep(1)
           open(10,file='mpi', status='old', action='read')
-          read(10, *) toura , space , ANGO
-          read(10, *) Lx , Ly , Lz 
+          read(10,*) toura , space , ANGO
+          read(10,*) Lx , Ly , Lz 
+          read(10,*) distance_type 
+          read(10,*) one1 , one2 , one3 ,one4
+          read(10,*) two1 , two2 , two3 ,two4
           close(10)
           if (ANGO == "A") then
             Lx = Lx / 0.5291772108D0
@@ -2062,7 +2068,6 @@ C----------------------------------------------------------------------C
           ay = 2*pi/Ly
           az = 2*pi/Lz
         end if
-
       end subroutine para_torus 
 
 C----------------------------------------------------------------------C
