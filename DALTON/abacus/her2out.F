@@ -237,6 +237,9 @@ C  /* Deck un2wrt */
 C
 C     Write undifferentiated 2-electron integrals to disk file AOTWOINT
 C
+!!!!!!!!!!!!!!!!! turin_irsamc !!!!!!!!!!!!!!!
+         use turin_irsamc
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!         
 #include "implicit.h"
 #include "priunit.h"
 #include "iratdef.h"
@@ -253,6 +256,13 @@ C
 #include "symmet.h"
       SAVE NBUF
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!     turin_irsamc    6  D16.8
+      if (detail) then
+         IPRINT = 6
+         open(3,file="ERI.out") 
+      end if 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 C
       IF (ITYPE .EQ. -1) THEN ! initialize LUINTA
          CALL REWSPL(LUINTA)
@@ -271,12 +281,19 @@ C
          WRITE (LUINTA) BUF,IBUF4,ICOUNT4
          NBUF = NBUF + 1
 C
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!     turin_irsamc    6  D16.8
-         IF (IPRINT .GE. 6) THEN
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            IF (IPRINT .GE. 6) THEN
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! turin_irsamc                
+            if (detail) then 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!               
+!            WRITE (LUPRI,'(2X,A,I5,A/)')
+!     &         'Type 0 integral buffer #',NBUF,' has been written.'
+            else
             WRITE (LUPRI,'(2X,A,I5,A/)')
-     &         'Type 0 integral buffer #',NBUF,' has been written.'
+     &         'Type 0 integral buffer #',NBUF,' has been written.'   
+            end if 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
             IBIT1 = 2**NBITS - 1
             DO 100 INT = 1, ICOUNT
                IF (NIBUF .EQ. 1) THEN
@@ -292,9 +309,14 @@ C
                   J = IAND(      IJ,         IBIT1)
                   K = IAND(ISHFT(KL, -NBITS),IBIT1)
                   L = IAND(      KL,         IBIT1)
-               END IF
+               END IF 
+               if (detail) then 
+               WRITE (3,'(10X,A,2X,4I4,5X,1P,F24.12)')
+     &                      ' ## ', I, J, K, L, BUF(INT)
+               else 
                WRITE (LUPRI,'(10X,A,2X,4I4,5X,1P,F24.12)')
      &                      ' ## ', I, J, K, L, BUF(INT)
+               end if 
   100       CONTINUE
          END IF
          ICOUNT = 0
@@ -313,9 +335,16 @@ C
 C
          IF (IPRINT .GE. 6) THEN
             IF (ICOUNT .GT. 0) THEN
-               WRITE (LUPRI,'(2X,A,I3,A,I5,A/)') 'Type',ITYPE,
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! turin_irsamc                               
+               if (detail) then 
+               
+               else 
+                  WRITE (LUPRI,'(2X,A,I3,A,I5,A/)') 'Type',ITYPE,
      &            ' integral buffer #',NBUF+1,' has been written.'
-               write (lupri,*) ICOUNT,' integrals in buffer'
+                  write (lupri,*) ICOUNT,' integrals in buffer'
+               end if 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!               
                IBIT1 = 2**NBITS - 1
                DO 200 INT = 1, ICOUNT
                   IF (NIBUF .EQ. 1) THEN
@@ -332,11 +361,18 @@ C
                      K = IAND(ISHFT(KL,-NBITS),IBIT1)
                      L = IAND(      KL,        IBIT1)
                   END IF
+                  if (detail) then 
+                  WRITE (3,'(10X,A,2X,4I4,5X,1P,F24.12)')
+     &                      ' ## ', I, J, K, L, BUF(INT)
+                  else 
                   WRITE (LUPRI,'(10X,A,2X,4I4,5X,1P,D16.8)')
      &                         ' ## ', I, J, K, L, BUF(INT)
+                  end if 
   200          CONTINUE
             END IF
          END IF
+
+         close(3)
 C
 C        Statistics
 C

@@ -78,7 +78,7 @@ C     HERINT is declared 3-dimensional for r12 integrals (WK/UniKA/14-11-2002).
      &          RJ000(NUABCD,*), WORK(LWORK),
      &          PQX(NUABCD), PQY(NUABCD), PQZ(NUABCD),
      &          COOR12(*), COOR34(*), EXP12(*), EXP34(*), FAC12(*),
-     &          FAC34(*), SIGNT(*)
+     &          FAC34(*), SIGNT(*), TPQX(NUABCD)
 C
       IF (R12EIN) THEN
 C
@@ -134,7 +134,8 @@ C
          CALL R000(RJ000,COOR12,COOR34,EXP12,EXP34,FAC12,FAC34,PQX,PQY,
      &             PQZ,JMAX,NOINT,NUABCD,NUC1,NUC2,NUC12,NUC3,NUC4,
      &             NUC34,THRESH,ONECEN,IPRINT,IPQ0X,IPQ0Y,IPQ0Z,SIGNT,
-     &             PANAS,CHIVAL,ERFEXP,VLAMBDA,COMLAM,SRINTS,WORK,LWORK)
+     &             PANAS,CHIVAL,ERFEXP,VLAMBDA,COMLAM,SRINTS,WORK,LWORK,
+     &             TPQX)
          IF (TKTIME) THEN
             TIMEND = SECOND()
             TIME = TIMEND - TIMSTR
@@ -151,7 +152,8 @@ C
 C           Calculate integrals
 C
             CALL HERI(HERINT,WORK,LWORK,RJ000,PQX,PQY,PQZ,INDHER,JMAX,
-     &             MAXDER,NUABCD,NTUV,IPQ0X,IPQ0Y,IPQ0Z,IODDHR,IPRINT)
+     &             MAXDER,NUABCD,NTUV,IPQ0X,IPQ0Y,IPQ0Z,IODDHR,IPRINT,
+     &             TPQX)
 C
             IF (R12INT .OR. U12INT .OR. BPH2OO) THEN
 C
@@ -185,7 +187,7 @@ C  /* Deck r000 */
      &                PQY,PQZ,JMAX,NOINT,NUABCD,NUC1,NUC2,NUC12,NUC3,
      &                NUC4,NUC34,THRESH,ONECEN,IPRINT,IPQ0X,IPQ0Y,IPQ0Z,
      &                SIGNT,PANAS,CHIVAL,ERFEXP,VLAMBDA,COMLAM,SRINTS,
-     &                 WORK,LWORK)
+     &                WORK,LWORK,TPQX)
 C
 C     TUH 84
 C
@@ -199,7 +201,7 @@ C
       LOGICAL ERFEXP(0:*)
       DIMENSION RJ000(*), PQX(*), PQY(*), PQZ(*), COOR12(*), COOR34(*),
      &          EXP12 (*), EXP34(*), FAC12 (*), FAC34(*), SIGNT(3),
-     &          WORK(LWORK)
+     &          WORK(LWORK), TPQX(*)
 C-----------------------------------------------------------------------
 C     =============================================
 C     Parameters used for memory-allocations
@@ -241,7 +243,7 @@ C     =============================================
      &           THRESH,ONECEN,IPRINT,IPQ0X,IPQ0Y,IPQ0Z,SIGNT,
      &           WORK(KWVALU),WORK(KALPHJ),WORK(KALPHA),WORK(KINDAD),
      &           PANAS,CHIVAL,ERFEXP,VLAMBDA,COMLAM,NTALPHX,
-     &           WORK(KEJ000),WORK(KSJ000),SRINTS,WORK(KLAST),LWRK)
+     &           WORK(KEJ000),WORK(KSJ000),SRINTS,WORK(KLAST),LWRK,TPQX)
       RETURN
       END
 C  /* Deck r0001 */
@@ -250,7 +252,7 @@ C  /* Deck r0001 */
      &                NUC4,NUC34,THRESH,ONECEN,IPRINT,IPQ0X,IPQ0Y,IPQ0Z,
      &                SIGNT,WVALU,TALPHA,SCLFAC,INDADR,PANAS,CHIVAL,
      &                ERFEXP,VLAMBDA,COMLAM,NTALPHX,EJ000,SJ000,
-     &                 SRINTS,WORK,LWORK)
+     &                SRINTS,WORK,LWORK,TPQX)
 C
 C     TUH 84
 C
@@ -274,7 +276,8 @@ C
      &          PQZ(NUABCD),COOR12(NUC1*NUC2,3),COOR34(NUC3*NUC4,3),
      &          EXP12 (*), EXP34(*), FAC12 (*), FAC34(*), SIGNT(3),
      &          WVALU(NUABCD,NTALPHX), TALPHA(NUABCD,NTALPHX), 
-     &          INDADR(NUABCD),SCLFAC(NUABCD,NTALPHX),WORK(LWORK)
+     &          INDADR(NUABCD),SCLFAC(NUABCD,NTALPHX),WORK(LWORK),
+     &          PQXM(NUABCD) , TPQX(NUABCD)
 #include "twosta.h"
 #include "dftcom.h"
 #include "subdir.h"
@@ -592,15 +595,20 @@ C
 
          call DISTARCPP(PX,SGN34X*COOR34(IOD34,1),PQXI,
      &                  PY,SGN34Y*COOR34(IOD34,2),PQYI,
-     &                  PZ,SGN34Z*COOR34(IOD34,3),PQZI,center1,center2)
+     &                  PZ,SGN34Z*COOR34(IOD34,3),PQZI,p_distance)
              
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!                             
-                  PQX(IODS) = PQXI
-                  PQY(IODS) = PQYI
-                  PQZ(IODS) = PQZI
+                  PQX(IODS)  = PQXI
+                  PQY(IODS)  = PQYI
+                  PQZ(IODS)  = PQZI
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!     turin_irsamc 
+                  TPQX(IODS) = p_distance
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!                  
                   WVALU(NODS,1) = ALPHA*(PQXI*PQXI+PQYI*PQYI+PQZI*PQZI)
                   INDADR(NODS) = IODS
                END DO
+                 
             ELSE IF (SRINTS) THEN
 C
 C              Short-range two-electron integrals (MC-srDFT)
@@ -1002,7 +1010,7 @@ C
 C  /* Deck heri */
       SUBROUTINE HERI(HERINT,WORK,LWORK,RJ000,PQX,PQY,PQZ,INDHER,JMAX,
      &                MAXDER,NUABCD,NTUV,IPQ0X,IPQ0Y,IPQ0Z,IODDHR,
-     &                IPRINT)
+     &                IPRINT,TPQX)
 C
 C     tuh fall 1984
 C
@@ -1011,13 +1019,15 @@ C     undetermined numbers - tuh
 C
 C     Modified for triangular addressing March 92 - tuh
 C
+
 #include "implicit.h"
 #include "priunit.h"
 #include "maxaqn.h"
       INTEGER T, U, V, TUV
       DIMENSION WORK(LWORK), RJ000(NUABCD,0:JMAX), IODDHR(*),
      &          PQX(NUABCD), PQY(NUABCD), PQZ(NUABCD),
-     &          INDHER(0:JTOP,0:JTOP,0:JTOP), HERINT(NUABCD,NTUV)
+     &          INDHER(0:JTOP,0:JTOP,0:JTOP), HERINT(NUABCD,NTUV),
+     &          TPQX(NUABCD)
 #include "twosta.h"
 #include "hertop.h"
 C
@@ -1044,6 +1054,7 @@ C
          MWHRSQ = MAX(MWHRSQ,NTUV*NUABCD)
          LWTOT  = LWTOT + KLAST
          MWTOT  = MAX(MWTOT,LWTOT)
+         
 C
 C        Recursion loop for Hermite integrals
 C        ====================================
@@ -1056,11 +1067,11 @@ C
             IF (MOD(JMAX-JVAL,2).EQ.0) THEN
                CALL HRECUR(HERINT,WORK(KHRWRK),JVAL,RJ000,PQX,PQY,PQZ,
      &                     INDHER,JMAX,MAXDER,NUABCD,NTUV,IPQX,IPQY,
-     &                     IPQZ)
+     &                     IPQZ,TPQX)
             ELSE
                CALL HRECUR(WORK(KHRWRK),HERINT,JVAL,RJ000,PQX,PQY,PQZ,
      &                     INDHER,JMAX,MAXDER,NUABCD,NTUV,IPQX,IPQY,
-     &                     IPQZ)
+     &                     IPQZ,TPQX)   
             END IF
   200    CONTINUE
          LWTOT  = LWTOT - KLAST
@@ -1096,15 +1107,20 @@ C
       END
 C  /* Deck hrecur */
       SUBROUTINE HRECUR(CUR,OLD,JVAL,RJ000,PQX,PQY,PQZ,INDHER,JMAX,
-     &                  MAXDER,NUABCD,NTUV,IPQX,IPQY,IPQZ)
+     &                  MAXDER,NUABCD,NTUV,IPQX,IPQY,IPQZ,TPQX)
 C
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!     turin_irsamc 
+         use turin_irsamc
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 #include "implicit.h"
       INTEGER T, U, V, TUV
       LOGICAL PQXGT0, PQYGT0, PQZGT0
       DIMENSION CUR(NUABCD,NTUV), OLD(NUABCD,NTUV),
      &          INDHER(0:JTOP,0:JTOP,0:JTOP),
      &          PQX(NUABCD), PQY(NUABCD), PQZ(NUABCD),
-     &          RJ000(NUABCD,0:JMAX)
+     &          RJ000(NUABCD,0:JMAX) , TPQX(NUABCD) 
 #include "doxyz.h"
 #include "hertop.h"
 C
@@ -1121,7 +1137,15 @@ C
          CALL DCOPY(NUABCD,RJ000(1,JMAX-1),1,CUR(1,1),1)
          IF (PQXGT0) THEN
             DO 110 I = 1, NUABCD
-               CUR(I,2) = PQX(I)*RJ000(I,JMAX)
+               if (toura) then 
+                  if (two4) then 
+                     CUR(I,2) = TPQX(I)*RJ000(I,JMAX)
+                  else
+                     CUR(I,2) = PQX(I)*RJ000(I,JMAX)
+                  end if 
+               else 
+                     CUR(I,2) = PQX(I)*RJ000(I,JMAX)
+               end if 
   110       CONTINUE
          END IF
          IF (PQYGT0) THEN
@@ -1382,19 +1406,7 @@ C
                   ALPHA = EXPP*EXPQ/EXPPQI
                   PQXI = PX - COOR34(IOD34,1)
                   PQYI = PY - COOR34(IOD34,2)
-                  PQZI = PZ - COOR34(IOD34,3)
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!     turin_irsamc 
-
-!               PQXI = PX - COOR34(IOD34,1)
-!               PQYI = PY - COOR34(IOD34,2)
-!               PQZI = PZ - COOR34(IOD34,3)
-                 
-         call DISTARCPP(PX,SGN34X*COOR34(IOD34,1),PQXI,
-     &                  PY,SGN34Y*COOR34(IOD34,2),PQYI,
-     &                  PZ,SGN34Z*COOR34(IOD34,3),PQZI)
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!                  
+                  PQZI = PZ - COOR34(IOD34,3)                 
                   IF (ABS(PQXI) .GT. THRESH) IPQ0X = 0
                   IF (ABS(PQYI) .GT. THRESH) IPQ0Y = 0
                   IF (ABS(PQZI) .GT. THRESH) IPQ0Z = 0

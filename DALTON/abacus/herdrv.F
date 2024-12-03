@@ -96,14 +96,6 @@ C
 C
       DIMENSION WORK(LWORK)
 C
-
-! ========================= !
-!      print*, ""      
-!      print*, "I am herdrv.F (102) after herni subroutine"
-!      print*, "Same family and same master"
-!      print*, ""
-! ========================= !
-
       CALL QENTER('HERCTL')
       CALL GETTIM(TIMHER,WALHER)
 C
@@ -4190,15 +4182,6 @@ Cholesky
       SAVE    FIRST_CALL
       DATA    FIRST_CALL /.TRUE./
 C
-
-! =================================== !
-
-!         print*, ""
-!         print*, "I am herdrv.F (4189) still the master core"
-!         print*, ""
-
-! =================================== !
-
       IF (.NOT. FIRST_CALL) RETURN
       FIRST_CALL = .FALSE.
 C

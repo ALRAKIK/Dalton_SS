@@ -332,7 +332,10 @@ C
 C     Initialize /CBIREA/, control variables in ecpinf.h,
 C     and parts of qm3.h
 C
-         use turin_irsamc
+! -===========================- !
+!     turin_irsamc       
+      use turin_irsamc
+! -===========================- !
 
 #include "implicit.h"
 #include "maxorb.h"
@@ -347,10 +350,7 @@ C
 #include "qm3.h"
 #include "r12int.h"
 #include "nuclei.h"
-! =============== ! 
-!#include "turin.h"
-!#include "pi.h"
-! =============== !
+
 C
       LOGICAL FIRST_CALL
       SAVE    FIRST_CALL
@@ -369,22 +369,15 @@ C
       THRS   = 1.0D-12 ! default integral accuracy
       SPHNRM = .TRUE.  ! basis functions normalized, also for d, f, ...
 
-! ================================================================ !
-      
-!      print*, "I am herrdn and this is toura" , toura  , mynum 
+! ================================================================ !      
+! turin_irsamc !       
+      if (mynum == 0) then
+         call para_torus(mynum)
+      end if 
 
-!      if (mynum == 0) then
-!         call para_torus(mynum)
-!      end if 
-!
-!      if (mynum .ne. 0) then 
-!         call para_torus(mynum)
-!         toura = .true. 
-!         space = "polymer"
-!         ax = 
-!         LX = 
-!      end if 
-
+      if (mynum .ne. 0) then 
+         call para_torus(mynum)
+      end if 
 ! ================================================================ !
 
 C
@@ -2193,22 +2186,6 @@ C             to tell this is a point charge /hjaaj Nov 2003
           GNUEXP(NCTOT) = GEXP
         END IF
   100 CONTINUE   !  DO 100 N = 1,NONT
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!     turin_irsamc 
-!     if (toura) then 
-!        if (space == "POLYMER") then
-!
-!           do I = 1, NCTOT
-!              if (CORD(1,I) - CORD(1,I-1) < 0.d0) then 
-!                 CORD(1,I) = CORD(1,I) + Lx   
-!              end if
-!
-!           end do 
-!
-!        end if 
-!     end if  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
-
       RETURN
 C
 C       Error messages:

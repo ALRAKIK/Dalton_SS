@@ -28,7 +28,7 @@ C  /* Deck her_pardrv */
      &                      DINTSKP,RELCALC,GENCTR)
 
 C  Hermit parallel driver.  Only called from PARDRV (checked Nov. 2016).
-            use turin_irsamc
+
 #include "implicit.h"
 #include "priunit.h"
 #include "mxcent.h"
@@ -239,7 +239,7 @@ C
       use memory_parallel
       use parallel_communication_models_mpi
       use rma_windows
-      use turin_irsamc
+
 
 #ifdef VAR_MPI
 #ifdef USE_MPI_MOD_F90
@@ -571,7 +571,7 @@ C  /* Deck her_sdinit */
 !     module dependencies
       use parallel_communication_models_mpi
       use rma_windows
-      use turin_irsamc
+
       
 #ifdef VAR_MPI
 #ifdef USE_MPI_MOD_F90
@@ -1370,10 +1370,6 @@ C     This is a slave in a parallel run; check for programming error
 !     =================================================================
 !
 
-! ======================================================= ! 
-!                        turin irsamc                     ! 
-! ======================================================= !
-
       CALL HER_RVINIT(WORK(1),KFREE,LFREE,
      &                NDMAT,ISYMDM,IFCTYP,ITYPE,
      &                IATOM,MAXDIF,NODV,NOPV,NOCONT,
@@ -1662,10 +1658,6 @@ C
 #ifdef VAR_MPI
       integer(kind=MPI_INTEGER_KIND) :: i_MPI, j_MPI, k_MPI, l_MPI, ierr
 #endif
-
-! ================ !
-#include "turin.h"
-! ================ !
 
       IF (IPRINT .GT. 2) THEN
          CALL TITLER('Output from HER_RVINIT','*',103)

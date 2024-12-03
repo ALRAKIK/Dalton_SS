@@ -710,7 +710,7 @@ C                 screening test:
 !                        COOR12(IPRIM,3,3,NSYMOP) = CORPZ - CRZ2
 
       call DISTANAPC2(CORPX,CORPY,CORPZ,CRX1,CRY1,
-     &                        CRZ1,CRX2,CRY2,CRZ2,
+     &                        CRZ1,CRX2,CRY2,CRZ2,EXP1,EXP2,EXPPI,
      &            COOR12(IPRIM,1,2,NSYMOP),COOR12(IPRIM,2,2,NSYMOP),
      &            COOR12(IPRIM,3,2,NSYMOP),COOR12(IPRIM,1,3,NSYMOP),
      &            COOR12(IPRIM,2,3,NSYMOP),COOR12(IPRIM,3,3,NSYMOP))

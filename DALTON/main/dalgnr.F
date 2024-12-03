@@ -1127,11 +1127,6 @@ C
 C     ... not OPTWLK and not OPTNEW, i.e. not geometry optimization
          NEWGEO = .TRUE.
 
-!! =============================================================== ! 
-!         print*, "I am dalgnr (1133) and everything still on one core"
-!         print*, "here is the new geometry to optimize"
-!! =============================================================== !
-
 Chj      IF (RNHERM .OR. TESTIN) CALL EXEHER(WORK,LMWORK,WRKDLM)
          CALL EXEHER(WORK(0),LMWORK,WRKDLM)
 Chj always call EXEHER to read MOLECULE.INP (not read in abactl any more)
@@ -1291,10 +1286,6 @@ C
 #include "maxorb.h"
 #include "priunit.h"
 #include "gnrinf.h"
-! =================== !
-! turin_irsamc
-#include "turin.h"
-! =================== !
 C
 #include "molde.h"
 #include "abainf.h"
@@ -1327,7 +1318,7 @@ C
 #include "pi.h"
       
 !      PARAMETER (NDIR = 15, NTABLE = 37, D0 = 0.D0)
-       PARAMETER (NDIR = 15, NTABLE = 38, D0 = 0.D0)
+       PARAMETER (NDIR = 15, NTABLE = 43, D0 = 0.D0)
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
 #if defined (VAR_VECTOR)
@@ -1345,7 +1336,7 @@ C
 C
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! turin_irsamc
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
     
 !      CHARACTER WORD*7, PROMPT*1, TABDIR(NDIR)*7, TABLE(NTABLE)*7,
 !     *          REWORD*12, RWORD*6, WORD1*7
@@ -1383,7 +1374,9 @@ C
      &            '.RUN AL', '.NMDDRV', '.PARNMD', ! 30
      &            '.THRRED', '.DOUGLA', '.PEQM  ',
      &            '.QFIT  ', '.LSLIB ', '.FDE   ', ! 36
-     &            '.NOATMD', '.TORUS'/
+     &            '.NOATMD', '.TORUS' , '.DETAIL',
+     &            '.FLIP'  , '.UPPER' , '.DISTANCE',
+     &            '.ONEINTONLY'                        /! 43
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!     
 C
@@ -1599,7 +1592,8 @@ C
                GO TO (101,102,103,104,105,106,107,108,109,110,
      &                111,112,113,114,115,116,117,118,119,120,
      &                121,122,123,124,125,126,127,128,129,129,
-     &                131,132,133,134,135,136,137,138), I
+     &                131,132,133,134,135,136,137,138,139,140,
+     &                141,142,143), I
      
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!     
             END IF
@@ -1780,7 +1774,7 @@ C
 
  138     CONTINUE  ! .NOATMD       
             toura = .TRUE.
-              READ (LUCMD,*) Lx , Ly , Lz , ANGO , space 
+              READ (LUCMD,*) Lx , Ly , Lz , ANGO , space
               WRITE(*,'(a)') "NOTE:"
               WRITE(*,'(a)') ""
               WRITE(*,'(a)') "----------------------------"
@@ -1813,8 +1807,57 @@ C
                 ax = 2*pi/Lx
                 ay = 2*pi/Ly
                 az = 2*pi/Lz
+                rx = Lx/(2*pi)
+                ry = Ly/(2*pi)
+                rz = Lz/(2*pi)
             GOTO 100
-         
+
+139     CONTINUE   
+            detail = .TRUE. 
+            WRITE(*,'(a)'), ""
+            WRITE(*,'(a)'), "----------------------------"
+            WRITE(*,'(a)')  'With a detail of the integrals'
+            WRITE(*,'(a)'), "----------------------------"
+            WRITE(*,'(a)'), ""
+            GOTO 100
+140     CONTINUE   
+            flip = .TRUE. 
+            WRITE(*,'(a)'), ""
+            WRITE(*,'(a)'), "----------------------------"
+            WRITE(*,'(a)')  'With a filp of the integrals'
+            WRITE(*,'(a)'), "----------------------------"
+            WRITE(*,'(a)'), ""
+            GOTO 100
+141     CONTINUE   
+            upper = .TRUE. 
+            WRITE(*,'(a)'), ""
+            WRITE(*,'(a)'), "----------------------------"
+            WRITE(*,'(a)')  'With upper dimensions       '
+            WRITE(*,'(a)'), "----------------------------"
+            WRITE(*,'(a)'), ""
+            GOTO 100
+142     CONTINUE   
+            distance_type = .TRUE. 
+            READ(LUCMD,*)   one1 , one2 , one3 ,one4
+            READ(LUCMD,*)   two1 , two2 , two3 ,two4
+            WRITE(*,'(a)'), ""
+            WRITE(*,'(a)'), "----------------------------"
+            WRITE(*,'(a)')  'With distances              '
+            WRITE(*,'(a)'), "----------------------------"
+            WRITE(*,*)      one1 , one2 , one3 , one4
+            WRITE(*,*)      two1 , two2 , two3 , two4 
+            WRITE(*,'(a)'), "----------------------------"
+            WRITE(*,'(a)'), ""
+            GOTO 100
+143     CONTINUE   
+            ONEINTONLY = .TRUE. 
+            WRITE(*,'(a)'), ""
+            WRITE(*,'(a)'), "----------------------------"
+            WRITE(*,'(a)')  'Only the One electron integrals'
+            WRITE(*,'(a)'), "----------------------------"
+            WRITE(*,'(a)'), ""
+            GOTO 100
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!         
 C
 C

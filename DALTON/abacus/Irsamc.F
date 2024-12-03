@@ -1,15 +1,19 @@
 C----------------------------------------------------------------------C
 C----------------------------------------------------------------------C
 C----------------------------------------------------------------------C
-
       module turin_irsamc
 
       implicit none 
       
       ! logical !
 
-      LOGICAL    toura 
-      
+      LOGICAL    toura  , detail , flip , upper , distance_type 
+
+      LOGICAL    one1 , one2 , one3 , one4 
+      LOGICAL    two1 , two2 , two3 , two4
+
+      LOGICAL    ONEINTONLY
+
       LOGICAL    same_center_X , same_center_Y ,same_center_Z
       
       ! character ! 
@@ -24,10 +28,12 @@ C----------------------------------------------------------------------C
       
       REAL*8     LX, LY, LZ
       REAL*8     ax, ay, az
+      REAL*8     rx, ry, rz
+      REAL*8     x_bar1 , x_bar2 
 
       ! matrix real ! 
 
-      REAL*8,allocatable   ::  over(:,:)
+      REAL*8,allocatable   ::  over(:,:) , Ham1(:,:)
 
       end module turin_irsamc
       
@@ -54,7 +60,6 @@ C
         implicit none 
   
 #include "priunit.h"
-!#include "turin.h"
 
 ! ---------------------------------------------------------------------- !
 
@@ -97,10 +102,14 @@ C ********************************************************************** C
   
         X = x1 - x2                       ! calculate the distance in normal way 
               
-        if (abs(X) > 0.5d0*Lx) then       ! PBC 
-          X = Lx - abs(X)
+        if (dabs(X) > 0.5d0*Lx) then       ! PBC 
+          X = Lx - dabs(X)
         end if
-    
+
+      if (one1) then 
+        X = (ax**(-2.d0)*(2.d0 - 2.d0*cos(ax*(x1-x2))))**(0.5d0)
+      endif 
+
         Y = y1 - y2
         Z = z1 - z2  
 
@@ -163,11 +172,15 @@ C ********************************************************************** C
       end if
   
         DIST = X*X+Y*Y+Z*Z                  ! the distance 
+
+        if (upper) then 
+          call higher6DD(x1,x2,y1,y2,z1,z2,DIST)
+        end if 
   
   
-!       write(lupri,'(a,3f12.6)')  'CORAX',    x1 , x2
+!       write(lupri,'(a,3f12.6)') 'CORAX',  x1 , x2
+!       write(lupri,'(a,3f12.6)') 'CORAY',  y1 , y2  
 !       write(lupri,'(a,3f12.6)') 'D         :',DIST
-!       write(lupri,'(a,3f12.6)')
 
         End  
 
@@ -182,31 +195,31 @@ C ---------------------------------------------------------------------- C
       SUBROUTINE    BarCENT(e1,e2,e1p,e2p,
      &                         gx1,gx2,Xp,
      &                         gy1,gy2,Yp,
-     &                         gz1,gz2,Zp,
-     &                         NUMO1 , NUMO2)
+     &                         gz1,gz2,Zp)
       
       use turin_irsamc
       
       implicit none
       
 #include "priunit.h"
-#include "turin.h"
 
 ! ----------------------------------------------------------------------!
       
         ! input !
-      
-         real*8,intent(in)       :: e1    , e2     ! e1/(e1+e2) , e2/(e1+e2)
-         real*8,intent(in)       :: e1p   , e2p    ! this just to print as the program calculate e1/(e1+e2) and e2/(e1+e2) before
-         real*8,intent(in)       :: gx1   , gx2    ! the gaussian coordinates on X 
-         real*8,intent(in)       :: gy1   , gy2    ! the gaussian coordinates on Y 
-         real*8,intent(in)       :: gz1   , gz2    ! the gaussian coordinates on Z 
-         integer, intent(in)     :: NUMO1 , NUMO2
-      
+    
+        real*8,intent(in)       :: e1    , e2     ! e1/(e1+e2) , e2/(e1+e2)
+        real*8,intent(in)       :: e1p   , e2p    ! this just to print as the program calculate e1/(e1+e2) and e2/(e1+e2) before
+        real*8,intent(in)       :: gx1   , gx2    ! the gaussian coordinates on X 
+        real*8,intent(in)       :: gy1   , gy2    ! the gaussian coordinates on Y 
+        real*8,intent(in)       :: gz1   , gz2    ! the gaussian coordinates on Z 
+    
+        ! local ! 
+
+        real*8                  :: theta , x11 , x12 , x21 , x22  
       
         ! output ! 
 
-         real*8,intent(out)      :: Xp , Yp , Zp ! the barycenter coordinates 
+        real*8,intent(out)      :: Xp , Yp , Zp ! the barycenter coordinates 
 
 ! ----------------------------------------------------------------------!
 
@@ -234,7 +247,7 @@ C ********************************************************************** C
 
         if (space == 'POLYMER') then 
 
-          if (abs(gx1-gx2) > 0.5d0*Lx) then 
+          if (dabs(gx1-gx2) > 0.5d0*Lx) then 
 
               if (gx1 > gx2) then 
 
@@ -252,35 +265,19 @@ C ********************************************************************** C
 
           else 
 
-          Xp = e1*gx1+e2*gx2   
+          Xp = e1*gx1+e2*gx2
 
           end if 
-
-          if (gx1 == gx2) then 
-            Xp = gx1 
-            if (NUMO1 .ne. NUMO2) then 
-!            write(lupri,'(I3,f12.6,I3,f12.6)')NUMO1 ,e1p ,NUMO2 ,e2p
-            same_center_X = .TRUE. 
-            else
-            same_center_X = .FALSE.  
-            end if 
-          end if 
-
-          if (e1 == e2) then 
-            if (abs(gx1-gx2) <= 0.5d0*Lx) then 
-              Xp = 0.5*(gx1 + gx2)
-            else 
-              Xp = 0.5*(gx1 + gx2 + Lx)
-            end if 
-          end if 
-
+                   
           if (XP >= Lx) then 
             Xp = Xp - Lx
           end if 
 
-!       Xp  = e1*gx1 + e2*gx2 
+!       Xp  = e1*gx1 + e2*gx2
         Yp  = e1*gy1 + e2*gy2
         Zp  = e1*gz1 + e2*gz2
+
+
 
         end if
 
@@ -312,23 +309,15 @@ C ********************************************************************** C
 
         end if 
 
-        if (gx1 == gx2) then 
-          Xp = gx1 
-          if (NUMO1 .ne. NUMO2) then 
+!        if (gx1 == gx2) then 
+!          Xp = gx1 
+!          if (NUMO1 .ne. NUMO2) then 
 !            write(lupri,'(I3,f12.6,I3,f12.6)')NUMO1 ,e1p ,NUMO2 ,e2p
-          same_center_X = .TRUE. 
-          else
-          same_center_X = .FALSE.  
-          end if 
-        end if 
-
-        if (e1 == e2) then 
-          if (abs(gx1-gx2) <= 0.5d0*Lx) then 
-            Xp = 0.5*(gx1 + gx2)
-          else 
-            Xp = 0.5*(gx1 + gx2 + Lx)
-          end if 
-        end if 
+!          same_center_X = .TRUE. 
+!          else
+!          same_center_X = .FALSE.  
+!          end if 
+!        end if 
 
         if (XP >= Lx) then 
           Xp = Xp - Lx
@@ -356,23 +345,15 @@ C ********************************************************************** C
 
       end if 
 
-      if (gy1 == gy2) then 
-        Yp = gy1 
-        if (NUMO1 .ne. NUMO2) then 
+!      if (gy1 == gy2) then 
+!        Yp = gy1 
+!        if (NUMO1 .ne. NUMO2) then 
 !            write(lupri,'(I3,f12.6,I3,f12.6)')NUMO1 ,e1p ,NUMO2 ,e2p
-        same_center_Y = .TRUE. 
-        else
-        same_center_Y = .FALSE.  
-        end if 
-      end if 
-
-      if (e1 == e2) then 
-        if (abs(gy1-gy2) <= 0.5d0*Ly) then 
-          Yp = 0.5*(gy1 + gy2)
-        else 
-          Yp = 0.5*(gy1 + gy2 + Lx)
-        end if 
-      end if 
+!        same_center_Y = .TRUE. 
+!        else
+!        same_center_Y = .FALSE.  
+!        end if 
+!      end if 
 
       if (Yp >= Ly) then 
         Yp = Yp - Ly
@@ -412,24 +393,6 @@ C ********************************************************************** C
 
         end if 
 
-        if (gx1 == gx2) then 
-          Xp = gx1 
-          if (NUMO1 .ne. NUMO2) then 
-!            write(lupri,'(I3,f12.6,I3,f12.6)')NUMO1 ,e1p ,NUMO2 ,e2p
-          same_center_X = .TRUE. 
-          else
-          same_center_X = .FALSE.  
-          end if 
-        end if 
-
-        if (e1 == e2) then 
-          if (abs(gx1-gx2) <= 0.5d0*Lx) then 
-            Xp = 0.5*(gx1 + gx2)
-          else 
-            Xp = 0.5*(gx1 + gx2 + Lx)
-          end if 
-        end if 
-
         if (XP >= Lx) then 
           Xp = Xp - Lx
         end if 
@@ -456,24 +419,6 @@ C ********************************************************************** C
 
       end if 
 
-      if (gy1 == gy2) then 
-        Yp = gy1 
-        if (NUMO1 .ne. NUMO2) then 
-!            write(lupri,'(I3,f12.6,I3,f12.6)')NUMO1 ,e1p ,NUMO2 ,e2p
-        same_center_Y = .TRUE. 
-        else
-        same_center_Y = .FALSE.  
-        end if 
-      end if 
-
-      if (e1 == e2) then 
-        if (abs(gy1-gy2) <= 0.5d0*Ly) then 
-          Yp = 0.5*(gy1 + gy2)
-        else 
-          Yp = 0.5*(gy1 + gy2 + Ly)
-        end if 
-      end if 
-
       if (Yp >= Ly) then 
         Yp = Yp - Ly
       end if 
@@ -498,24 +443,6 @@ C ********************************************************************** C
         
       Zp = e1*gz1+e2*gz2   
         
-      end if 
-
-      if (gz1 == gz2) then 
-        Zp = gz1 
-        if (NUMO1 .ne. NUMO2) then 
-!          write(lupri,'(I3,f12.6,I3,f12.6)')NUMO1 ,e1p ,NUMO2 ,e2p
-        same_center_Z = .TRUE. 
-        else
-        same_center_Z = .FALSE.  
-        end if 
-      end if 
-
-      if (e1 == e2) then 
-        if (abs(gz1-gz2) <= 0.5d0*Lz) then 
-          Zp = 0.5*(gz1 + gz2)
-        else 
-          Zp = 0.5*(gz1 + gz2 + Lz)
-        end if 
       end if 
 
       if (Zp >= Lz) then 
@@ -548,8 +475,12 @@ C ********************************************************************** C
   !      write(lupri,'(4x,f24.16,a,f24.16)')     e1p ,'      ', e2p 
   !      write(lupri,'(a,3f12.6)')  ''
   !      write(lupri,'(a,3f12.6)')  '       gx1         gx2         Xp'
-  !      write(lupri,'(a,3f12.6)')  ''
+  !      write(lupri,'(a,3f12.6)')  '' 
+  !      write(lupri,'(3(f24.16))')     gx1  ,  gx2 ,   x_bar1 
+  !      write(lupri,'(3(f24.16))')     gx1  ,  gx2 ,   x_bar2  
   !      write(lupri,'(3(f24.16))')     gx1  ,  gx2 ,   Xp
+  !      write(lupri,'(3(f24.16))')     gy1  ,  gy2 ,   Yp
+  !
   !      write(lupri,'(a,3f12.6)')  ''
 
         End
@@ -564,9 +495,9 @@ C ---------------------------------------------------------------------- C
 !     integrals should be ok 
 
       SUBROUTINE DISTANAPC(Px,Py,Pz,gx1,gy1,gz1,
-     &                              gx2,gy2,gz2,
+     &                              gx2,gy2,gz2,alpha,beta,p_center,
      &                           Pxg1,Pyg1,Pzg1,
-     &                           Pxg2,Pyg2,Pzg2,J)
+     &                           Pxg2,Pyg2,Pzg2)
 
       use turin_irsamc
 
@@ -574,7 +505,6 @@ C ---------------------------------------------------------------------- C
 
 #include "pi.h"
 #include "priunit.h"
-!#include "turin.h"      
 
 ! ---------------------------------------------------------------------- !
 
@@ -583,11 +513,10 @@ C ---------------------------------------------------------------------- C
       REAL*8, intent(in) :: Px , Py , Pz
       REAL*8, intent(in) :: gx1 , gy1 , gz1
       REAL*8, intent(in) :: gx2 , gy2 , gz2
-      INTEGER,intent(in) :: J
+      REAL*8, intent(in) :: alpha , beta , p_center 
 
       ! local !
 
-      REAL*8             :: ngx1 , ngx2 
       INTEGER            :: sign 
 
       ! output !
@@ -625,28 +554,13 @@ C ********************************************************************** C
 
         if (space == "POLYMER") then 
         
-        call ssd(Px,gx1,Pxg1)
-  
-        call ssd(Px,gx2,Pxg2)
+        call SSD(Px,gx1,Pxg1)
+        call SSD(Px,gx2,Pxg2)
 
-!!EUC!! 
-!        call essd(Px,gx1,Pxg1)
-!!EUC!!   
-!        call essd(Px,gx2,Pxg2)
-
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
-! force implementation  !   
-
-!        if (Pxg1 > 0) then 
-!          Pxg1 = - Pxg1 
-!        end if 
-! 
-!        if (Pxg2 < 0) then 
-!          Pxg2 = - Pxg2 
-!        end if 
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+        if (one2) then 
+          Pxg1 = - beta*p_center*dsin(ax*(gx1-gx2))/ax
+          Pxg2 =  alpha*p_center*dsin(ax*(gx1-gx2))/ax
+        end if 
 
         Pyg1 = Py - gy1
         Pzg1 = Pz - gz1
@@ -714,7 +628,7 @@ C ********************************************************************** C
 !       write(LUPRI,'(a,3f12.6)')
 !       write(LUPRI,'(a,3f12.6)') '              Bary_centers  ' 
 !       write(LUPRI,'(a,3f12.6)')
-!       write(LUPRI,'(3(4x,f24.16))')         Px 
+!       write(LUPRI,'(3(4x,f24.16))')         Px  , Py
 !       write(LUPRI,'(a,3f12.6)')
 !       write(LUPRI,'(a,3f12.6)') '              Gaussian locations '
 !       write(LUPRI,'(a,3f12.6)')
@@ -724,6 +638,12 @@ C ********************************************************************** C
 !       write(LUPRI,'(a,3f12.6)') 
 !       write(LUPRI,'(3(4x,f24.16))')         Pxg1 , Pxg2
 !       write(LUPRI,'(a,3f12.6)') ""
+!       write(LUPRI,'(a,3f12.6)') '               Bary_center_mod     '
+!       write(LUPRI,'(a,3f12.6)') ""
+!       write(LUPRI,'(3(4x,f24.16))')         x_bar1 , x_bar2
+!       write(LUPRI,'(3(4x,f24.16))')         x11    , x12  
+!       write(LUPRI,'(a,3f12.6)') ""
+       
 
       End 
 
@@ -736,7 +656,7 @@ C----------------------------------------------------------------------C
 !     ODC from the subroutine DISTANAPC (2nd one in one elctron integrals)
 !     to get the correct integrals
 
-      SUBROUTINE DISTARCP(xa,xp,Xap,ya,yp,Yap,za,zp,Zap,J)
+      SUBROUTINE DISTARCP(xa,xp,Xap,ya,yp,Yap,za,zp,Zap,p_distance)
 
       use turin_irsamc
 
@@ -744,7 +664,6 @@ C----------------------------------------------------------------------C
 
 #include "pi.h"
 #include "priunit.h"
-!#include "turin.h"
 
 !----------------------------------------------------------------------!
 
@@ -753,10 +672,10 @@ C----------------------------------------------------------------------C
       REAL*8, intent(in)  :: xa , xp
       REAL*8, intent(in)  :: ya , yp
       REAL*8, intent(in)  :: za , zp
-      integer,intent(in)  ::  J 
+      
       ! local !
 
-      integer             :: sign
+      double precision    :: sign
       REAL*8              :: nxp 
 
       ! output !
@@ -764,6 +683,7 @@ C----------------------------------------------------------------------C
       REAL*8, intent(out) :: Xap
       REAL*8, intent(out) :: Yap
       REAL*8, intent(out) :: Zap
+      REAL*8, intent(out) :: p_distance 
 
 !----------------------------------------------------------------------!
 
@@ -791,22 +711,8 @@ C**********************************************************************C
 
         if (space == "POLYMER") then
           
-        call SSD(xa,xp,Xap)
-        
-          if (Xap >=  0) then 
-            sign =     1 
-          else 
-            sign =  -   1 
-          end if 
-
-          if (xa == xp ) Xap = 0.d0 
-
-          Xap = sign*abs(Xap)
-
-          Xap = sign*(ax**(-2.d0)*(2.d0-2.d0*cos(ax*Xap)))**(0.5d0)
-
-!          if (same_center_X .and. abs(xa-xp) == 0.5d0*Lx) Xap = 0.d0 
-                
+          call SSED(xa,xp,Xap,p_distance)
+                          
           Yap = ya - yp 
           Zap = za - zp
 
@@ -821,7 +727,7 @@ C**********************************************************************C
           call SSD(xa,xp,Xap)
           
             if (Xap >=  0) then 
-              sign =     1 
+              sign =      1 
             else 
               sign =  -   1 
             end if 
@@ -962,7 +868,6 @@ C
   
 #include "pi.h"
 #include "priunit.h"
-!#include "turin.h"
 
 !----------------------------------------------------------------------!
 
@@ -1009,6 +914,10 @@ C**********************************************************************C
           if (abs(X) > 0.5d0*Lx) then
             X = Lx - abs(X)
           end if
+
+          if (two1) then 
+            X = (ax**(-2.d0)*(2.d0 - 2.d0*cos(ax*(x1-x2))))**(0.5d0)
+          end if 
 
           Y = y1 - y2
           Z = z1 - z2
@@ -1096,7 +1005,6 @@ C----------------------------------------------------------------------C
       implicit none
 
 #include "priunit.h"
-!#include "turin.h"
       
 !----------------------------------------------------------------------!
 
@@ -1155,20 +1063,6 @@ C**********************************************************************C
           Xp = e1*gx1+e2*gx2   
           
           end if 
-
-          if (gx1 == gx2 ) then 
-            Xp = gx1 
-          end if 
-
-
-          if (e1 == e2) then 
-            if (abs(gx1-gx2) <= 0.5d0*Lx) then 
-              Xp = 0.5*(gx1 + gx2)
-            else 
-              Xp = 0.5*(gx1 + gx2 + Lx)
-            end if 
-          end if 
-
 
           if (Xp >= Lx) then 
             Xp = Xp  - Lx 
@@ -1435,8 +1329,9 @@ C----------------------------------------------------------------------C
 !     integrals should be ok 
 
       SUBROUTINE DISTANAPC2(Px,Py,Pz,gx1,gy1,gz1, 
-     &                      gx2,gy2,gz2,
-     &                      Pxg1,Pyg1,Pzg1,Pxg2,Pyg2,Pzg2)
+     &                               gx2,gy2,gz2,alpha,beta,p_center,
+     &                            Pxg1,Pyg1,Pzg1,
+     &                            Pxg2,Pyg2,Pzg2)
 
       use turin_irsamc
 
@@ -1444,7 +1339,6 @@ C----------------------------------------------------------------------C
 
 #include "pi.h"
 #include "priunit.h"
-!#include "turin.h"      
 
 !----------------------------------------------------------------------!
 
@@ -1453,9 +1347,11 @@ C----------------------------------------------------------------------C
       REAL*8, intent(in) :: Px , Py , Pz
       REAL*8, intent(in) :: gx1 , gy1 , gz1
       REAL*8, intent(in) :: gx2 , gy2 , gz2
+      REAL*8, intent(in) :: alpha , beta, p_center
 
       ! local !
 
+      integer            :: sign 
 
       ! output !
 
@@ -1495,6 +1391,12 @@ C**********************************************************************C
         call ssd(Px,gx1,Pxg1)
         call ssd(Px,gx2,Pxg2)
 
+        if (two2) then 
+          Pxg1 = - beta*p_center*dsin(ax*(gx1-gx2))/ax
+          Pxg2 =  alpha*p_center*dsin(ax*(gx1-gx2))/ax
+        endif
+        
+        
         Pyg1 = Py - gy1
         Pzg1 = Pz - gz1
          
@@ -1578,7 +1480,8 @@ C----------------------------------------------------------------------C
 !     ODC from the subroutine DISTANAPC (2nd one in two elctron integrals)
 !     to get the correct integrals
 
-      SUBROUTINE DISTARCPP(xp1,xp2,Xpp,yp1,yp2,Ypp,zp1,zp2,Zpp)
+      SUBROUTINE DISTARCPP(xp1,xp2,Xpp,yp1,yp2,Ypp,zp1,zp2,Zpp,
+     &                     p_distance)
 
       use turin_irsamc
 
@@ -1586,7 +1489,6 @@ C----------------------------------------------------------------------C
 
 #include "pi.h"
 #include "priunit.h"
-!#include "turin.h"
 
 !----------------------------------------------------------------------!
 
@@ -1604,6 +1506,7 @@ C----------------------------------------------------------------------C
       REAL*8, intent(out) :: Xpp
       REAL*8, intent(out) :: Ypp
       REAL*8, intent(out) :: Zpp
+      REAL*8, intent(out) :: p_distance
 
 !----------------------------------------------------------------------!
 
@@ -1626,47 +1529,10 @@ C**********************************************************************C
 
         if (space == "POLYMER") then
 
-       if (xp1 > xp2) then 
-         Xpp = xp1 - xp2
-         Xpp = - Xpp 
-         if (abs(Xpp) > 0.5d0*Lx) then 
-           Xpp = Lx - abs(Xpp)
-         end if 
-       end if 
+          call SSED2(xp1,xp2,Xpp,p_distance)
 
-        if (xp2 > xp1) then 
-          Xpp = xp1 - xp2
-          Xpp = - Xpp 
-          if (abs(Xpp) > 0.5d0*Lx) then 
-            Xpp = Lx - abs(Xpp)
-            Xpp = - Xpp 
-          end if 
-        end if 
-
-        if   (abs(xp1-xp2) > 0.5d0*Lx - 0.00000000001 ) then 
-          if (abs(xp1-xp2) < 0.5d0*Lx + 0.00000000001 ) then 
-            if (xp1 > xp2) then 
-              Xpp = - 0.5d0*Lx 
-            else 
-              Xpp =   0.5d0*Lx
-            end if 
-          end if 
-        end if 
-
-      if (Xpp >  0) then 
-        sign = -  1.d0 
-      else  
-        sign =    1.d0 
-      end if       
-
-      if ((xp1 == xp2))   Xpp = 0.d0
-
-      Xpp = sign*abs(Xpp)
-
-      Xpp = sign*(ax**(-2.d0)*(2.d0-2.d0*cos(ax*Xpp)))**(0.5d0)
-
-        Ypp  = yp1 - yp2
-        Zpp  = zp1 - zp2
+          Ypp  = yp1 - yp2
+          Zpp  = zp1 - zp2
   
         end if 
  
@@ -1902,14 +1768,6 @@ C**********************************************************************C
 !      write(LUPRI,'(a,3f12.6)')
 !      write(LUPRI,'(3(f24.14))')         xp1,xp2,Xpp
 !      write(LUPRI,'(3(f24.10))')         Xpp
-!      write(LUPRI,'(f24.14,a,L,f24.14,a,L,f24.14)') xp1,' ', center1 ,
-!     &           xp2,' ', center2, Xpp
-!      if (abs(xp1-xp2) > 0.5d0*Lx - 0.0001 ) then 
-!        if (abs(xp1-xp2) < 0.5d0*Lx + 0.0001) then 
-!      write(LUPRI,'(f24.14,a,L,f24.14,a,L,f24.14)') xp1,' ', center1 ,
-!     &           xp2,' ', center2, Xpp
-!        end if 
-!      end if 
 !      write(LUPRI,'(a,3f12.6)')
 !      write(LUPRI,'(a,3f12.6)') 
 
@@ -1936,7 +1794,6 @@ C
 
 #include "pi.h"
 #include "priunit.h"
-#include "turin.h"
 
       REAL*8, intent(in)  :: x1 , x2         ! the coordinates on X
       REAL*8, intent(in)  :: y1 , y2         ! the coordinates on Y
@@ -2023,27 +1880,28 @@ C
       
         implicit none
 
-!#include "turin.h"
-        
+#include "pi.h"
+#include "priunit.h"
+
         REAL*8, intent(in)  :: x1 , x2         ! the coordinates on X 
       
         REAL*8, intent(out) :: X               ! the distance
       
         ! local ! 
       
-        INTEGER              :: sign
+        double complex      :: sign
       
       
         X = x1 - x2 
 
-        if (X >= 0) then 
-          sign =  1 
+        if (X >= 0.d0) then 
+          sign = +1.d0 
         else
-          sign = -1 
+          sign = -1.d0  
         end if 
         
-        if (abs(X) > 0.5d0*Lx) then 
-          X = (-1)*sign*(Lx-abs(X))
+        if (dabs(X) > 0.5d0*Lx) then 
+          X = (-1.d0)*sign*(Lx-dabs(X))
         end if 
 
         END
@@ -2051,6 +1909,108 @@ C
 C----------------------------------------------------------------------C
 C----------------------------------------------------------------------C
 C----------------------------------------------------------------------C
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!**********************************************************************! 
+C           
+C                       Short signed EUCLIDEAN  distance 
+C
+!**********************************************************************!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+
+      SUBROUTINE SSED(x1,x2,X,p_distance)
+    
+      use turin_irsamc
+    
+      implicit none
+
+#include "pi.h"
+#include "priunit.h"
+
+      REAL*8, intent(in)  :: x1 , x2         ! the coordinates on X 
+    
+      REAL*8, intent(out) :: X               ! the distance
+      REAL*8, intent(out) :: p_distance
+    
+      ! local ! 
+    
+      double precision    :: sign
+    
+    
+      call SSD(x1,x2,X)
+    
+      if (X >= 0.d0) then 
+        sign = +1.d0 
+      else
+        sign = -1.d0  
+      end if 
+
+      X = sign*dabs(X)
+
+      if (one3) then 
+        X = sign * (dsqrt(2.d0 * (1.d0 - dcos(ax*x)) / (ax * ax)))
+      end if 
+
+      if (one4) then 
+        p_distance = dsin(ax*(x1-x2))/ax
+      end if 
+
+      END
+
+C----------------------------------------------------------------------C
+C----------------------------------------------------------------------C
+C----------------------------------------------------------------------C
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!**********************************************************************! 
+C           
+C                       Short signed EUCLIDEAN  distance 
+C
+!**********************************************************************!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+      SUBROUTINE SSED2(x1,x2,X,p_distance)
+
+      use turin_irsamc
+    
+      implicit none
+    
+#include "pi.h"
+#include "priunit.h"
+    
+      REAL*8, intent(in)  :: x1 , x2         ! the coordinates on X 
+    
+      REAL*8, intent(out) :: X               ! the distance
+      REAL*8, intent(out) :: p_distance
+    
+      ! local ! 
+    
+      double precision    :: sign
+    
+    
+      call SSD(x1,x2,X)
+    
+      if (X >= 0.d0) then 
+        sign = +1.d0 
+      else
+        sign = -1.d0  
+      end if 
+    
+      X = sign*dabs(X)
+    
+      if (two3) then 
+        X = sign * (dsqrt(2.d0 * (1.d0 - dcos(ax*x)) / (ax * ax)))
+      end if 
+    
+      if (two4) then 
+        p_distance = dsin(ax*(x1-x2))/ax
+      end if 
+    
+      END
+
+C----------------------------------------------------------------------C
+C----------------------------------------------------------------------C
+C----------------------------------------------------------------------C
+
 
       subroutine truncate(number, decimals)
         implicit none
@@ -2075,43 +2035,251 @@ C----------------------------------------------------------------------C
 
         implicit none
 
+#include "pi.h"
+
         INTEGER, intent(in) :: core 
-
         ! local ! 
-
-        LOGICAL        topo , POLY 
-        CHARACTER*8    pspace 
-        REAL*8         pax , pay , paz 
-        REAL*8         pLx , pLy , pLz 
-
-!#include "turin.h"
       
-!        if (core == 0) then 
-!          print*, "i am the core and toura " ,core,toura,ax 
-!          if (toura) then 
-!            topo   = toura
-!            pspace = space 
-!            if (space == "POLYMER") then 
-!              POLY = .TRUE. 
-!            end if 
-!          end if 
-!          print*, "i am the core and toura " ,core,topo, ax
-!        end if 
-
-!        if (core .ne. 0) then 
-!          print*, "i am the core and toura " ,core,toura,ax
-!          print*, ""
-!            toura = topo 
-!            space = pspace 
-!            if (POLY) then 
-!              space = "POLYMER"
-!            end if 
-!            space = "POLYMER"
-!          print*, "i am the core and toura " ,core,toura,ax
-!          print*, "----------"
-!        end if
+        if (core == 0) then 
+          open(10,file='mpi',status='replace',action='write')
+          write(10, *) toura , space , ANGO
+          write(10, *) Lx , Ly , Lz  
+          close(10)
+        end if 
+        
+        if (core .ne. 0) then 
+          call sleep(1)
+          open(10,file='mpi', status='old', action='read')
+          read(10, *) toura , space , ANGO
+          read(10, *) Lx , Ly , Lz 
+          close(10)
+          if (ANGO == "A") then
+            Lx = Lx / 0.5291772108D0
+            Ly = Ly / 0.5291772108D0
+            Lz = Lz / 0.5291772108D0
+          end if
+          ax = 2*pi/Lx
+          ay = 2*pi/Ly
+          az = 2*pi/Lz
+        end if
 
       end subroutine para_torus 
+
+C----------------------------------------------------------------------C
+C----------------------------------------------------------------------C
+C----------------------------------------------------------------------C
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!**********************************************************************! 
+C           
+C              Switching the atom coordinates for nuclear attraction 
+C
+!**********************************************************************!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+
+      subroutine SAC(xa,xp,Xap,ya,yp,Yap,za,zp,Zap)
+        
+        use turin_irsamc
+
+        implicit none
+  
+#include "pi.h"
+#include "priunit.h"
+  
+  !----------------------------------------------------------------------!
+  
+        ! input !
+  
+        REAL*8, intent(in)  :: xa , xp
+        REAL*8, intent(in)  :: ya , yp
+        REAL*8, intent(in)  :: za , zp
+        
+        ! local !
+  
+        REAL*8              :: theta , x11 ,x12 , x21 , x22 
+  
+        ! output !
+  
+        REAL*8, intent(out) :: Xap
+        REAL*8, intent(out) :: Yap
+        REAL*8, intent(out) :: Zap
+  
+  !----------------------------------------------------------------------!
+  
+C**********************************************************************C
+  
+!     from her1car.F !
+  
+!           DIFCPX = COORC(1,IATOMC) - CORPX
+!           DIFCPY = COORC(2,IATOMC) - CORPY
+!           DIFCPZ = COORC(3,IATOMC) - CORPZ
+  
+C**********************************************************************C
+
+
+      !------- code ------!
+
+        if (toura) then 
+
+          theta = ax*xa 
+          x11 = -rx*cos(theta)
+          x12 = -rx*sin(theta)
+
+          theta = ax*xp 
+          x21 = -rx*cos(theta)
+          x22 = -rx*sin(theta)
+
+
+          Xap = x11 - x21 
+          Yap = x12 - x22 
+          Zap = za - zp
+
+        else
+
+          Xap = xa - xp
+          Yap = ya - yp
+          Zap = za - zp
+
+        end if
+
+      end subroutine
+C----------------------------------------------------------------------C
+C----------------------------------------------------------------------C
+C----------------------------------------------------------------------C
+      subroutine higher6DD(x1,x2,y1,y2,z1,z2,DIST)
+        
+        use turin_irsamc
+
+        implicit none
+  
+#include "pi.h"
+#include "priunit.h"
+         
+
+        REAL*8, intent(in)  :: x1 , x2    ! the gaussian coordinates on X 
+        REAL*8, intent(in)  :: y1 , y2    ! the gaussian coordinates on Y
+        REAL*8, intent(in)  :: z1 , z2    ! the gaussian coordinates on Z
+  
+        ! local !
+  
+        REAL*8 :: theta 
+        REAL*8 :: x11,x12,x21,x22,y11,y12,y21,y22,z11,z12,z21,z22 
+        REAL*8 :: X , U
+        REAL*8 :: Y , V 
+        REAL*8 :: Z , W 
+  
+        ! output !
+  
+        REAL*8, intent(out) :: DIST       ! the distance 
+
+        theta = ax*x1                     ! changing the coordinates
+        x11   = -rx*cos(theta)
+        x12   = -rx*sin(theta)
+
+        theta = ax*x2 
+        x21   = -rx*cos(theta)
+        x22   = -rx*sin(theta)
+
+
+        X = (x11-x21)
+        U = (x12-x22)
+
+        theta = ay*y1
+        y11   = -ry*cos(theta)
+        y12   = -ry*sin(theta)
+
+        theta = ay*y2
+        y21   = -ry*cos(theta)
+        y22   = -ry*sin(theta)
+
+        Y = (y11 - y21)
+        V = (y12 - y22) 
+        
+        theta = az*z1
+        z11   = -rz*cos(theta)
+        z12   = -rz*sin(theta)
+
+        theta = az*z2
+        z21   = -rz*cos(theta)
+        z22   = -rz*sin(theta)
+
+        Z = (z11 - z21)
+        W = (z12 - z22) 
+
+        DIST = X*X+U*U+
+     &         Y*Y+V*V+
+     &         Z*Z+W*W  
+
+      end subroutine
+
+C----------------------------------------------------------------------C
+C----------------------------------------------------------------------C
+C----------------------------------------------------------------------C
+      subroutine higher6DP(e1,e2,e1p,e2p,
+     &                     gx1,gx2,
+     &                     gy1,gy2,
+     &                     gz1,gz2,
+     &                     Xp,Up,Yp,Vp,Zp,Wp)
+
+        use turin_irsamc
+         
+        implicit none
+        
+#include "priunit.h"
+
+      ! input !
+       
+      real*8,intent(in)       :: e1    , e2     ! e1/(e1+e2) , e2/(e1+e2)
+      real*8,intent(in)       :: e1p   , e2p    ! this just to print as the program calculate e1/(e1+e2) and e2/(e1+e2) before
+      real*8,intent(in)       :: gx1   , gx2    ! the gaussian coordinates on X 
+      real*8,intent(in)       :: gy1   , gy2    ! the gaussian coordinates on Y 
+      real*8,intent(in)       :: gz1   , gz2    ! the gaussian coordinates on Z 
+
+      ! local ! 
+
+      real*8                  :: theta
+      real*8                  :: x11 , x12 , x21 , x22 
+      real*8                  :: y11 , y12 , y21 , y22
+      real*8                  :: z11 , z12 , z21 , z22
+
+      ! output !
+
+      real*8,intent(out)      :: Xp,Up,Yp,Vp,Zp,Wp
+
+      theta = ax*gx1                     ! changing the coordinates
+      x11   = -rx*cos(theta)
+      x12   = -rx*sin(theta)
+
+      theta = ax*gx2 
+      x21   = -rx*cos(theta)
+      x22   = -rx*sin(theta)
+
+      Xp    = e1*x11 + e2*x12 
+      UP    = e1*x12 + e2*x22 
+      
+      theta = ay*gy1                     ! changing the coordinates
+      y11   = -ry*cos(theta)
+      y12   = -ry*sin(theta)
+
+      theta = ay*gx2 
+      y21   = -ry*cos(theta)
+      y22   = -ry*sin(theta)
+
+      Yp    = e1*y11 + e2*y12
+      Vp    = e1*y12 + e2*y22  
+      
+      theta = az*gz1                     ! changing the coordinates
+      z11   = -rz*cos(theta)
+      z12   = -rz*sin(theta)
+
+      theta = az*gz2 
+      z21   = -rz*cos(theta)
+      z22   = -rz*sin(theta)
+
+      Zp    = e1*z11 + e2*z12
+      Wp    = e1*z12 + e2*z22 
+        
+      end subroutine 
 
 C----------------------------------------------------------------------C
 C----------------------------------------------------------------------C

@@ -294,12 +294,14 @@ C
      &            .TRUE.,.FALSE.,.FALSE.,.TRUE.,.TRUE.,.FALSE.)
       CALL RDONEL('ONEHAMIL',.TRUE.,WORK(KHMAT),NNBAST)
       CALL GET1EL(ERGNCL,WORK(KDMAT),WORK(KHMAT),IPRINT)
+
 C
 C     contributions
 C
       EL1TOT = ERGONE - ERGKIN
       EL1NON = ERGNCL - ERGKIN
       EL1CLS = EL1TOT - EL1NON
+
 C
 C     Two-electron interactions
 C     =========================

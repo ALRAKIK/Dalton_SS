@@ -83,7 +83,10 @@ C  /* Deck onepr1 */
      &                  DIFQDP,FACINT,COORC,GNUEXP,JCENTC,NCENTC,NHKTAP,
      &                  NCLONE,PCM,TSHGTF,EXPDER,WORK,LWORK)
 C
-
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!     turin_irsamc 
+         use turin_irsamc
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #include "implicit.h"
 #include "priunit.h"
 #include "pi.h"
@@ -273,6 +276,8 @@ C
          IF (ASAAB.LT.TOLS) GO TO 200
 ********************************************************
             SAAB13 = SIGN(ASAAB**THIRD,SAAB)
+
+!            write(LUPRi,'(//,a,10f16.8)')"conta",CONTA,CONTB
 C
 C           Calculate coordinates of product Gaussian P
 C
@@ -293,11 +298,20 @@ C
 !            print*, JSTA   , JSTB
 
 
-      call  BarCENT(EXPAPI,EXPBPI,EXPA,EXPB
-     &                   ,CORAX,CORBX,CORPX
-     &                   ,CORAY,CORBY,CORPY
-     &                   ,CORAZ,CORBZ,CORPZ 
-     &                   ,NUCA ,NUCB)
+         call  BarCENT(EXPAPI,EXPBPI,EXPA,EXPB
+     &                      ,CORAX,CORBX,CORPX
+     &                      ,CORAY,CORBY,CORPY
+     &                      ,CORAZ,CORBZ,CORPZ)
+!      write(LUPRI,'(a,2f16.8)') "P_X , P_U", CORPX , CORPY      
+      
+      if (upper) then 
+         call higher6DP(EXPAPI,EXPBPI,EXPA,EXPB,CORAX,CORBX,
+     &                                          CORAY,CORBY,
+     &                                          CORAZ,CORBZ,
+     &                              P_X,P_U,P_Y,P_V,P_Z,P_W)
+!      write(LUPRI,'(a,2f16.8)') "P_X , P_U", P_X , P_U 
+      end if 
+
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -349,9 +363,16 @@ C
 
       CALL  DISTARCP(COORC(1,IATOMC),CORPX,DIFCPX
      &              ,COORC(2,IATOMC),CORPY,DIFCPY
-     &              ,COORC(3,IATOMC),CORPZ,DIFCPZ,JMAX)
+     &              ,COORC(3,IATOMC),CORPZ,DIFCPZ
+     &              ,p_distance)
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!                  
+!      CALL       SAC(COORC(1,IATOMC),CORPX,DIFCPX
+!     &              ,COORC(2,IATOMC),CORPY,DIFCPY
+!     &              ,COORC(3,IATOMC),CORPZ,DIFCPZ)
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!                  
+!     read this cerfully, added p_distance to the HERNI subroutine 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!            
                   IF(ABS(GNUEXP(IATOMC)).GT.GNUTHR) THEN
                     EXPFAC = GNUEXP(IATOMC)
                     EXPFAC = EXPFAC/(EXPFAC + EXPP)
@@ -359,11 +380,11 @@ C
                     FACTOR = FACTOR*(EXPFAC**1.5D0)
                     CALL HERNAI(AHGTF,JMAX,EXPPGN,DIFCPX,DIFCPY,
      *                DIFCPZ,FACTOR,IADR,ISTEPU,ISTEPV,NAHGTF,
-     *                IPRINT)
+     *                IPRINT,p_distance)
                   ELSE
                     CALL HERNAI(AHGTF,JMAX,EXPP,DIFCPX,DIFCPY,
      *                DIFCPZ,FACTOR,IADR,ISTEPU,ISTEPV,NAHGTF,
-     *                IPRINT)
+     *                IPRINT,p_distance)
                   ENDIF
                END IF
                IADR = IADR + NAHGTF
@@ -430,7 +451,7 @@ Ckr in PCMGRI
                      DIFCPZ = SIGNZ * ZTSCOR(ITS) - CORPZ
                      CALL HERNAI(TSHGTF,JMAX,EXPP,DIFCPX,DIFCPY,
      *                    DIFCPZ,FACTOR,IADR,ISTEPU,ISTEPV,NAHGTF,
-     *                    IPRINT)
+     *                    IPRINT,p_distance)
                      IADR = IADR + NAHGTF
  310              CONTINUE
                ENDDO
@@ -454,7 +475,11 @@ C
       END
 C  /* Deck hernai */
       SUBROUTINE HERNAI(AHGTF,JMAX,PVAL,CPX,CPY,CPZ,FACINT,IADR,
-     &                  ISTEPU,ISTEPV,NRTUV,IPRINT)
+     &                  ISTEPU,ISTEPV,NRTUV,IPRINT,p_distance)
+
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      use turin_irsamc
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #include "implicit.h"
 C
 C     This subroutine calculates the R integrals as defined by
@@ -472,12 +497,14 @@ C
 C     TUH spring 1984
 C     Modified TUH 880613 to avoid negative addressing in recursion.
 C
+
 #include "priunit.h"
 #include "pi.h"
 #include "maxaqn.h"
 #include "mxcent.h"
       PARAMETER (D1 = 1.D0, D2 = 2.D0, D2PI = D2*PI)
       DIMENSION AHGTF(*)
+      REAL*8    p_distance 
 #include "gamcom.h"
 
       IF (IPRINT .GT. 20) THEN
@@ -544,7 +571,22 @@ C
       ISTRTJ                 =   ISTRTJ + ISTEPJ
       FJWMAX                 =   FJW(JMAX)
       AHGTF(ISTRTJ)          =   FJW(JMAX - 1)
-      AHGTF(ISTRTJ +      1) = - CPX*FJWMAX
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+! turin_irsamc      
+
+      if (toura) then 
+         if (one3) then 
+         AHGTF(ISTRTJ +      1) = - p_distance*FJWMAX
+         else 
+         AHGTF(ISTRTJ +      1) = - CPX*FJWMAX
+         end if    
+      else 
+         AHGTF(ISTRTJ +      1) = - CPX*FJWMAX
+      end if 
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
       AHGTF(ISTRTJ + ISTEPU) = - CPY*FJWMAX
       AHGTF(ISTRTJ + ISTEPV) = - CPZ*FJWMAX
 C
@@ -566,8 +608,9 @@ C
             AHGTF(ISTRTU) = FJW(JMAX - JVAL)
 C
 C           RJ(1,0,0)
-C
+C           
             AHGTF(ISTRTU + 1) = - CPX*AHGTF(IPREV1 + 1)
+            
 C
 C           RJ(t,0,0) for  t > 1
 C
@@ -649,6 +692,11 @@ C  /* Deck cint0 */
 C
 C     TUH
 C
+! ------------------ !
+! turin_irsamc 
+      use turin_irsamc
+! ------------------ !
+
 #include "implicit.h"
 #include "priunit.h"
 #include "maxaqn.h"
@@ -668,7 +716,7 @@ C
       DO 100 ICOMPB = 1,KCKTB
          LVALB = LVALUB(ICOMPB)
          MVALB = MVALUB(ICOMPB)
-         NVALB = NVALUB(ICOMPB)
+         NVALB = NVALUB(ICOMPB)      
 C
 C    **********************************************************
 C    ***** CALCULATE OVERLAP AND KINETIC ENERGY INTEGRALS *****
@@ -682,11 +730,12 @@ C
          Z2 = ODC(NVALA,NVALB,0,2,0,3)
          INT = INT + 1
          STDER0(INT,1) = STDER0(INT,1)+SFAC*X0*Y0*Z0
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!     turin_irsamc         
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
          STDER0(INT,2) = STDER0(INT,2)+TFAC*(X2*Y0*Z0+X0*Y2*Z0+X0*Y0*Z2)
+!         write(LUPRI,'(a,6f16.8)') "OV",X0,Y0,Z0,SFAC
+!         write(LUPRI,'(a,6f16.8)') "de",X2,Y2,Z2
+!          write(LUPRI,'(a,6f16.8)') "de",X0,Y0,Z2,TFAC
+!         write(LUPRI,'(a,6f16.8)') "T ",TFAC*X2*Y0*Z0
+!     &                                 ,TFAC*X0*Y2*Z0,TFAC*X0*Y0*Z2
 C
 C     **************************************************
 C     ***** CALCULATE NUCLEAR ATTRACTION INTEGRALS *****
@@ -706,16 +755,17 @@ C
                   DO 500 IATOM = 1,NATOMC
                      IADD = IADD + NAHGTF
                      AINT = AINT + EEE*AHGTF(IADR00 + IADD)
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!     turin_irsamc 
-!         WRITE (LUPRI,'(/,A,3F16.12)') "AINT" , IANT
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!                     
+!                     WRITE (LUPRI,'(/,A,I5,10F12.6)') ' atom AINT',IATOM 
+!     &     ,EEE*AHGTF(IADR00 + IADD), ODC(LVALA,LVALB,IT,0,0,1),
+!     &     ODC(MVALA,MVALB,IU,0,0,2) ,ODC(NVALA,NVALB,IV,0,0,3),
+!     &     AHGTF(IADR00 + IADD)
   500             CONTINUE
   400          CONTINUE
                IADRAU = IADRAU + ISTEPU
   300       CONTINUE
             IADRAV = IADRAV + ISTEPV
   200    CONTINUE
+!         WRITE (LUPRI,'(/,A,10F12.6)') 'Total', AINT 
          ADER(INT) = ADER(INT) + AINT
 C
 C        PRINT SECTION
@@ -1400,3 +1450,11 @@ C
  100  CONTINUE
       RETURN
       END
+   
+
+
+
+
+
+
+

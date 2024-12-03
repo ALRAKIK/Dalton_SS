@@ -81,7 +81,7 @@ C
 C     Undifferentiated expansion coefficients
 C
       CALL ONEODC(ODCUND,JMAXAP,JMAXBP,JMAXTP,JMAXD,JMAXM,SAAB13,EXPPI,
-     &            CORPX,CORPY,CORPZ,IPRINT)
+     &            CORPX,CORPY,CORPZ,IPRINT,EXPA,EXPB)
       CALL COPODC(ODCUND,ODC,JMAXAP,JMAXBP,JMAXA,JMAXB,JMAXT,JMAXTP,
      &            JMAXD,JMAXM,0,0)
       IF (IPRINT .GE. 10) THEN
@@ -157,10 +157,13 @@ C
       END
 C  /* Deck oneodc */
       SUBROUTINE ONEODC(ODCUND,JMAXAP,JMAXBP,JMAXTP,JMAXD,JMAXM,FAC,
-     &                  EXPPI,CORPX,CORPY,CORPZ,IPRINT)
+     &                  EXPPI,CORPX,CORPY,CORPZ,IPRINT,EXPA,EXPB)
 C
 C     TUH 91
 C
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!     turin_irsamc 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #include "implicit.h"
 #include "priunit.h"
       INTEGER T, A, B, AB
@@ -181,22 +184,16 @@ C
 !      PBZ = CORPZ - CORBZ
 
       call DISTANAPC(CORPX,CORPY,CORPZ,CORAX,CORAY,
-     &               CORAZ,CORBX,CORBY,CORBZ,
-     &               PAX,PAY,PAZ,PBX,PBY,PBZ,JMAX)
+     &               CORAZ,CORBX,CORBY,CORBZ,EXPA,EXPB,EXPPI,
+     &               PAX,PAY,PAZ,PBX,PBY,PBZ)
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
       EXPPIH = EXPPI/2
-      DO 100 A = 0, JMAXAP
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!     turin_irsamc                   
-!         WRITE(LUPRI,'(a,I4)') 'A' , A
-!         WRITE(LUPRI,'(a,I4)') 'A'
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!         
+      DO 100 A = 0, JMAXAP       
          IF (A .EQ. 0) THEN
             ODCUND(0,0,0,0,0,1) = FAC
             ODCUND(0,0,0,0,0,2) = FAC
             ODCUND(0,0,0,0,0,3) = FAC
-!            WRITE(LUPRI,'(a,F16.12)') 'FAC', FAC 
          ELSE
             DO 200 T = 0, A
                X_TP1 = T + 1
@@ -208,9 +205,7 @@ C
      *                              + X_TP1*ODCUND(A-1,0,T+1,0,0,2)
                ODCUND(A,0,T,0,0,3) = EXPPIH*ODCUND(A-1,0,T-1,0,0,3)
      *                                + PAZ*ODCUND(A-1,0,T  ,0,0,3)
-     *                              + X_TP1*ODCUND(A-1,0,T+1,0,0,3)
-!      CALL AROUND('ODCUND in ONEODC - x component')
-!      WRITE(LUPRI,'(a,6F16.12)') 'ODCUND i', ODCUND(A,0,T,0,0,1) 
+     *                              + X_TP1*ODCUND(A-1,0,T+1,0,0,3) 
   200       CONTINUE
          END IF
          DO 300 B = 1, JMAXBP
@@ -283,7 +278,7 @@ C
 C
       CALL COPODC(ODCUND,ODC,JMAXAP,JMAXBP,JMAXA,JMAXB,JMAXT,JMAXTP,
      &            JMAXD,JMAXM,JMAXD,0)
-      IF (IPRINT .GE. 10) THEN
+      IF (IPRINT .GE. 20) THEN
          CALL TITLER('Output from DODCA','*',103)
          JMAXAB = (JMAXA + 1)*(JMAXB + 1)
          DO 60 I = 1, JMAXD

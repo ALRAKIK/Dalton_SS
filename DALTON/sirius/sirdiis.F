@@ -826,6 +826,7 @@ C           .. subtract DCOVLP*FVAO_previous to get DCOVLP*FCAO_previous
          END IF
          EMY = DDOT(NNBAST,DAOSAV,1,H1AO,1)
      &       + DDOT(NNBAST,DAOSAV,1,FAOSAV(1,INDEVC,1),1) * DP5
+
          IF (DOHFSRDFT) EMY = EMY + EDFTY + ESRDFTY
 C
          IF (ONLYFC) THEN
@@ -1086,6 +1087,23 @@ C
 C
          EMCDIF = EMCSCF
          EMCSCF = EMY + EACTIV + EPOT + ESOLT
+         
+
+
+! ------------------------------------------------------ ! 
+!     irsamc_turin 
+
+         call HEADER("Details about the energy",-1)
+         write(LUPRI,'(a,f20.12)') "HF energy           " , EMCSCF
+         write(LUPRI,'(a,f20.12)') "one electron energy " ,
+     &     DDOT(NNBAST,DAOSAV,1,H1AO,1)
+         write(LUPRI,'(a,f20.12)') "twp electron energy " , 
+     &     DDOT(NNBAST,DAOSAV,1,FAOSAV(1,INDEVC,1),1) * DP5    
+         write(LUPRI,'(a,f20.12)') "HF nuclear repulsion" , EPOT
+
+         write(LUPRI,'(a)') "---------------------------------"
+
+! ------------------------------------------------------ !         
 
          IF (QM3 .AND. (.NOT. OLDTG)) EMCSCF = EMCSCF - EELEL
 C        this also includes the case of MMPCM

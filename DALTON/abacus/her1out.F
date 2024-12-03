@@ -26,6 +26,13 @@ C
 C     This subroutine writes undifferentiated overlap, one-electron
 C     Hamiltonian, and kinetic energy integrals on sequential file.
 C
+
+! ------------------------------------ !
+!     turin_irsamc 
+! ------------------------------------ ! 
+         use turin_irsamc
+! ------------------------------------ !
+
 #include "implicit.h"
 #include "maxaqn.h"
 #include "priunit.h"
@@ -46,12 +53,20 @@ C
       IF (IPRINT .GE. 4) CALL TITLER('Output from WRTUND','*',103)
       THRS_OUT = MAX(1.0D-15,THRS)
 C
+
+! ---------------------------------------------- !
+! turin_irsamc 
+! ---------------------------------------------- !
+         if (detail) open(5,file="matrix_element.out")
+! ---------------------------------------------- !
+
       DO 100 ITYPE = 1, 3
          IF (ITYPE .EQ. 1) THEN
             IF (FINDPT) WRITE (LUPRI,'(/A)') 
      &      ' Metric is changed by direct perturbation theory (DPT) '
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !     turin_irsamc     4 
+         if (detail)   WRITE (5,'(A)') 'Overlap matrix'
             IF (IPRINT .GE. 4) WRITE (LUPRI,'(/A)') ' Overlap matrix'
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!            
             WRITE (LUONEL) LAB123, TITLES
@@ -61,13 +76,15 @@ C
      &      ' direct perturbation theory (DPT) '
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !     turin_irsamc   4
+         if (detail)   WRITE (5,'(A)')'One-el. Ham. matrix'
             IF (IPRINT .GE. 4)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!            
      &         WRITE (LUPRI,'(/A)')' One-el. Ham. matrix'
             WRITE (LUONEL) LAB123, TITLEH
          ELSE IF (ITYPE .EQ. 3) THEN
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!     turin_irsamc   4          
+!     turin_irsamc   4         
+         if (detail)      WRITE (5,'(A)')'Kin. energy matrix' 
             IF (IPRINT .GE. 4) WRITE (LUPRI,'(/A)')' Kin. energy matrix'
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!            
             WRITE (LUONEL) LAB123, TITLET
@@ -80,8 +97,8 @@ C
             IF (ITYPE .EQ. 1 .AND. FINDPT)
      *      AINT = AINT + DPTFAC * DP5 * ALPHAC**2 * STHMAT(IAB,3)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!     turin_irsamc THRS_OUT          
-            IF (ABS(AINT) .GT. THRS_OUT) THEN
+!     turin_irsamc THRS_OUT
+!            IF (ABS(AINT) .GT. THRS_OUT) THEN
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!               
                ICOUNT = ICOUNT + 1
                BUF(ICOUNT) = AINT
@@ -93,7 +110,7 @@ C
                   WRITE (LUONEL) BUF, IBUF, ICOUNT
                   NBUF = NBUF + 1
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!     turin_irsamc                               
+!     turin_irsamc                             
                   IF (IPRINT .GE. 4) THEN
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!                  
 
@@ -101,9 +118,23 @@ C
      *                  ' ICOUNT, NBUF  ', ICOUNT, NBUF,
      *                  ' NNBAST, NNBASX', NNBAST, NNBASX
                   END IF
+! ------------------------------------------------- !
+! turin_irsamc 
+! ------------------------------------------------- !    
+            if (detail) then                                  
+                  DO I = 1, ICOUNT
+                     LABEL = IBUF(I)
+                     IORBA = INDEX1(LABEL)
+                     IORBB = INDEX2(LABEL)
+                     WRITE (5,'(1X,3I5,5X,F24.12)')
+     *                        LABEL, IORBA, IORBB, BUF(I)
+                  END DO
+            end if 
+! ------------------------------------------------- !
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!     turin_irsamc            D24.12
-                  IF (IPRINT .GE. 5) THEN
+!     turin_irsamc            D24.12                  
+                  IF (IPRINT .GE. 4) THEN
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!     
                      DO I = 1, ICOUNT
                         LABEL = IBUF(I)
@@ -114,7 +145,7 @@ C
                      END DO
                   END IF
                   ICOUNT = 0
-               END IF
+!               END IF
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!               
            END IF
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!            
@@ -132,8 +163,22 @@ C
      *         ' ICOUNT, NBUF  ', ICOUNT, NBUF,
      *         ' NNBAST, NNBASX', NNBAST, NNBASX
          END IF
+! ------------------------------------------------ ! 
+! turin_irsamc                                     !
+! ------------------------------------------------ !       
+         if (detail) then           
+            DO  I = 1, ICOUNT
+               LABEL = IBUF(I)
+               IORBA = INDEX1(LABEL)
+               IORBB = INDEX2(LABEL)
+               WRITE (5,'(1X,3I5,5X,F24.12)')
+     *                LABEL, IORBA, IORBB, BUF(I)
+            end do 
+         end if 
+! ------------------------------------------------ !       
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!     turin_irsamc 5                   D24.12
+!     turin_irsamc 5                   D24.12         
          IF (IPRINT .GE. 5) THEN
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!            
              DO 500 I = 1, ICOUNT
@@ -164,6 +209,11 @@ C
             WRITE (LUPRI,'(A,F7.2)') ' Percentage non-zero integrals:',
      *                              PERCNT
          END IF
+! --------------------------------------------------- !
+! turin_irsamc                                        !
+! --------------------------------------------------- !   
+         if (detail) call system("cp matrix_element.out  ~")
+! --------------------------------------------------- !         
   100 CONTINUE
       RETURN
       END

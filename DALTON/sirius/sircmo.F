@@ -540,41 +540,122 @@ C              This routine will then delete the corresponding vectors from CMO.
                CALL DZERO(SCRA(MBSYM),MBNUL)
             ENDIF
          END IF
+
+
+!! ---------------------------- ! 
+!      allocate(over(NORBI,NORBI))
+!
+!      K = 1 
+!
+!      over(:,:) = 0.d0
+!
+!      do i = 1,NORBI 
+!         do j = 1,NORBI 
+!            if (j <= i) then 
+!               over(i,j) = SCRA(K)
+!               K = K + 1 
+!            end if 
+!            over(j,i) = over(i,j)
+!         end do 
+!      end do
+!
+!      do i = 1,NORBI
+!         WRITE(*,'(I3,A,100000F16.12)') i,'   ', over(i,:)
+!      end do 
+!
+!
+!      WRITE(*,'(I3,A,100000F16.12)')
+!
+!      do i = 6, NORBI , 4
+!         do j = 1,NORBI,4
+!           over(i,j) = 0.d0 
+!           over(j,i) = 0.d0 
+!         end do
+!       end do 
+! 
+!      do i = 5, NORBI , 4 
+!         do j = 2,NORBI,4
+!           over(i,j) = 0.d0 
+!           over(j,i) = 0.d0 
+!         end do
+!      end do
+!
+!      K = 1 
+!
+!      do i = 1,NORBI 
+!         do j = 1,NORBI 
+!            if (j <= i) then 
+!               SCRA(K) = over(i,j)
+!               K = K + 1 
+!            end if
+!         end do 
+!      end do
+!
+!      K = 1 
+!
+!      over(:,:) = 0.d0
+!
+!      do i = 1,NORBI 
+!         do j = 1,NORBI 
+!            if (j <= i) then 
+!               over(i,j) = SCRA(K)
+!               K = K + 1 
+!            end if 
+!            over(j,i) = over(i,j)
+!         end do 
+!      end do
+!
+!      do i = 1,NORBI
+!         WRITE(*,'(I3,A,100000F16.12)') i,'   ', over(i,:)
+!      end do 
+!
+!      deallocate(over)
+! ---------------------------- ! 
 C
 C        Update SCR(KS1T) to the new CMO vectors:
 C
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !     turin_irsamc 
-
-       allocate(over(NORBI,NORBI))
+!       allocate(over(NORBI,NORBI))
        
-       CALL HEADER ('The overlap Matrix',-1)
+!       if (toura) then 
+!         open(1002,file="over_Torus.out")
+!       else 
+!         open(1002,file="over_Ring.out")
+!       end if 
 
-       K = 1 
+!       CALL HEADER ('The overlap Matrix',-1)
 
-       over(:,:) = 0.d0 
+!       K = 1 
 
-      WRITE(LUPRI,'(1000I16)') (I,I=1,NORBI)
-      WRITE(LUPRI,'(A)') '' 
+!       over(:,:) = 0.d0 
+
+!      WRITE(1002,'(1000I16)') (I,I=1,NORBI)
+!      WRITE(1002,'(A)') '' 
       
-      do i = 1,NORBI 
-         do J = 1,NORBI 
-            if (J <= i) then 
-               over(i,j) = SCRA(K)
-               K = K + 1 
-            end if 
-            over(j,i) = over(i,j)
-         end do 
-      end do 
+!      do i = 1,NORBI 
+!         do J = 1,NORBI 
+!            if (J <= i) then 
+!               over(i,j) = SCRA(K)
+!               K = K + 1 
+!            end if 
+!            over(j,i) = over(i,j)
+!         end do 
+!      end do 
 
-      do i = 1,NORBI
-            WRITE(LUPRI,'(I3,A,100000F16.12)') i,'   ', over(i,:)
-      end do 
+!      do i = 1,NORBI
+!            WRITE(1002,'(I3,A,100000F16.12)') i,'   ', over(i,:)
+!      end do 
 
-      deallocate(over)
+!      call system("cp over_Torus.out ~")
+!      call system("cp over_Ring.out  ~")
+
+!      close(1002)
+
+!      deallocate(over)
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
          CALL UTHU(SCRA(ISSYM),SCRA(KS1T),CMO(ICSYM),SCRA(KSCR1),
      *             NBASI,NORBI)
@@ -969,6 +1050,12 @@ C
 C Output:
 C  CMO; molecular orbitals
 C
+! ----------------------- ! 
+   ! turin_irsamc 
+      use turin_irsamc
+! ----------------------- !
+
+
 #include "implicit.h"
       DIMENSION CMO(*),SH1(*),SCRA(*)
 C
@@ -1019,6 +1106,49 @@ C
          ISSYM = IIBAS(ISYM) + 1
          ICSYM = ICMO(ISYM) + 1
 C
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!     turin_irsamc 
+
+!       allocate(Ham1(NORBI,NORBI))
+       
+!       if (toura) then 
+!         open(1001,file="ham_Torus.out")
+!       else 
+!         open(1001,file="ham_Ring.out")
+!       end if 
+
+!       K = 1 
+
+!       Ham1(:,:) = 0.d0 
+
+!      WRITE(1001,'(1000I16)') (I,I=1,NORBI)
+!      WRITE(1001,'(A)') '' 
+      
+!      do i = 1,NORBI 
+!         do J = 1,NORBI 
+!            if (J <= i) then 
+!               ham1(i,j) = sh1(K)
+!               K = K + 1 
+!            end if 
+!            ham1(j,i) = ham1(i,j)
+!         end do 
+!      end do 
+
+!      do i = 1,NORBI
+!            WRITE(1001,'(I3,A,100000F16.12)') i,'   ', ham1(i,:)
+!      end do 
+
+!      close(1001)
+
+!      call system("cp ham_Torus.out     ~")
+!      call system("cp ham_Ring.out      ~")
+
+!      deallocate(Ham1)
+
+!  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
          CALL UTHU(SH1(ISSYM),SCRA(KH1T),CMO(ICSYM),SCRA(KSCR1),
      *             NBASI,NORBI)
 C        CALL UTHU(H,HT,U,WRK,NAO,NMO)
@@ -1511,6 +1641,8 @@ C
 C
 C *** Print molecular orbitals
 C
+!         CMOPRI = .true.
+
       IF (PROCC .AND. .NOT. CMOPRI) THEN
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !     turin_irsamc  1.0D-2  1.0D-4    
@@ -1571,6 +1703,10 @@ C
                IF (JJ .EQ. 1) WRITE(IOUT,2800) I,CENT(I+ISTBAS),
      *            TYPE(I+ISTBAS),(CMO(J),J=JSMO,JEMO,NBASI)
   200       CONTINUE
+!               do i = 1, 10000
+!                  print*, CMO(i)
+!               end do  
+!               print*, ""
          IF (IEND.NE.NENDI) GO TO 100
 C
   300 CONTINUE

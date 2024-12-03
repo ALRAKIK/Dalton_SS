@@ -34,7 +34,6 @@ C=========================================================================
 #endif
 C
       use parallel_models_mpi
-      use turin_irsamc
 C
 #include "implicit.h"
 #include "dummy.h"
@@ -61,11 +60,6 @@ C
 C defined parallel calculation types  
 #include "iprtyp.h"
 
-! ======================= ! 
-! turin_irsamc 
-#include "turin.h"
-! ======================= !
-
 !     this is to echo input files to the output
       character(100)     :: line
       logical            :: file_exists, file_open
@@ -84,18 +78,6 @@ C Start MPI, if parallel, in MPIXINIT; define MYNUM, MASTER, NODTOT
 C If not MPI, MPIXINIT defines: MYNUM  = 0; MASTER = 0; NODTOT = 0
 C
       CALL MPIXINIT
-
-! ===================================================================== !      
-      
-! ===================================================================== !
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-!     so here if i try to see MYNUM it should give me the number of cores
-
-!      print*,"The Total number of cores :",NODTOT," and I am " , MYNUM 
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
       call parallel_models_initialize_mpi()
 
@@ -595,29 +577,7 @@ C           structure of BASDIR: 'dir1:dir2:dir3'
 
 C        Read general input for Dalton
 C
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
-!      print*,""  
-!      print*,"I am the master core before reading and my index is ",MYNUM  
-!      print*,""
-!      print*,"I am the value of toura", toura , Lx , space
-!      print*,""        
-
-!  here everything in on the master core  so reading the input file is on the master core only 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!    
-
          CALL DALTON_GNRLINP
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!         
-!      print*,"I am the master core after reading and my index is ",MYNUM
-!      print*,""
-!      print*,"I am the value of toura", toura , Lx , space
-!      print*,""        
-
-!      CALL MPI_BCAST(toura,1,MPI_LOGICAL,0,MPI_COMM_WORLD,ierr_mpi)
-      
-!      CAN'T BCAST FROM HERE 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!         
-
 
 #if defined (VAR_MPI)
          CALL RECVNAMES

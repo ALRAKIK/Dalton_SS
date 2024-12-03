@@ -364,6 +364,11 @@ C  /* Deck c2hin1 */
      &                  CONT3,CONT4,ETUV,CCONT,SCR1,SCR2,NCOOR,LMNV34,
      &                  NPCO3,NPCO4,NUCS34,IPRINT,INDHER,NPNT34,NRED34,
      &                  SSINT,CSINT,NHCMAX)
+
+!/////////////////////////////////////////!     
+!     turin_irsamc 
+      use turin_irsamc
+!/////////////////////////////////////////!
 C
 #include "implicit.h"
 #include "priunit.h"
@@ -725,7 +730,7 @@ C
      &                              + FAC*SSINT(IWORK + I,ICMP34)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !     turin_irsamc
-!                       AOINT(I,ICMP,ITYPE) = 0.d0 
+                     if (ONEINTONLY) AOINT(I,ICMP,ITYPE) = 0.d0 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!     
   820                CONTINUE
                      IWORK = IWORK + NO1234
